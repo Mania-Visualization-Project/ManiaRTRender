@@ -1,0 +1,181 @@
+﻿using OsuRTDataProvider.Mods;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using static ManiaRTRender.ManiaRTRenderPlugin;
+
+namespace ManiaRTRender
+{
+    public static class OsuUtils
+    {
+        private static readonly double[] BASE_JUDGEMENT_OFFSET = new double[] { 16.5, 64.5, 97.5, 127.5, 151.5, 188.5 };
+        private static readonly double[] BASE_JUDGEMENT_OFFSET_HR = new double[] { 11.5, 45.5, 69.5, 90.5, 107.5, 133.5 };
+        private static readonly double[] BASE_JUDGEMENT_OFFSET_EZ = new double[] { 22.5, 89.5, 135.5, 177.5, 211.5, 263.5 };
+        private static readonly double DECREMENT_NONE = 3.0;
+        private static readonly double DECREMENT_HR = 2.1;
+        private static readonly double DECREMENT_EZ = 4.2;
+
+        public static readonly Color[] JUDGEMENT_COLORS = new Color[]
+        {
+            Color.FromArgb(255, 255, 255),
+            Color.FromArgb(255, 210, 55),
+            Color.FromArgb(121, 208, 32),
+            Color.FromArgb(30, 104, 197),
+            Color.FromArgb(225, 52, 155),
+            Color.FromArgb(255, 0, 0)
+        };
+        public static readonly Color COLOR_LIGHT = Color.FromArgb(100, 100, 100);
+
+        private static double[] GetJudgementWindow(double od, ModsInfo modsInfo)
+        {
+            double[] result = new double[6];
+            double decrement;
+            if (modsInfo.HasMod(ModsInfo.Mods.HardRock))
+            {
+                BASE_JUDGEMENT_OFFSET_HR.CopyTo(result, 0);
+                decrement = DECREMENT_HR;
+            }
+            else if (modsInfo.HasMod(ModsInfo.Mods.Easy))
+            {
+                BASE_JUDGEMENT_OFFSET_EZ.CopyTo(result, 0);
+                decrement = DECREMENT_EZ;
+            }
+            else
+            {
+                BASE_JUDGEMENT_OFFSET.CopyTo(result, 0);
+                decrement = DECREMENT_NONE;
+            }
+
+            double speedRatio = GetSpeedRatio(modsInfo);
+            for (int i = 1; i < 6; i++)
+            {
+                result[i] -= decrement * od;
+                result[i] *= speedRatio;
+            }
+            return result;
+        }
+
+        // a naive parser
+        public static ManiaBeatmap ReadBeatmap(string beatmap_file, ModsInfo modsInfo)
+        {
+            bool is_hit_object = false;
+            ManiaBeatmap beatmap = new ManiaBeatmap();
+            double od = double.NaN;
+            List<Note> notes = new List<Note>();
+
+            using (var fs = File.OpenRead(beatmap_file))
+            using (StreamReader reader = new StreamReader(fs))
+            {
+
+                while (!reader.EndOfStream)
+                {
+                    string line = reader.ReadLine().Trim();
+
+                    if (line.StartsWith("CircleSize"))
+                    {
+                        try
+                        {
+                            beatmap.Key = int.Parse(line.Split(':').Last());
+                            Logger.I($"Find key: {beatmap.Key}");
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.E(e.StackTrace);
+                        }
+                    }
+                    else if (line.StartsWith("OverallDifficulty"))
+                    {
+                        try
+                        {
+                            od = double.Parse(line.Split(':').Last());
+                            Logger.I($"Find od: {od}");
+                        } 
+                        catch (Exception e)
+                        {
+                            Logger.E(e.StackTrace);
+                        }
+                    }
+                    else if (line.StartsWith("["))
+                    {
+                        is_hit_object = line == "[HitObjects]";
+                        continue;
+                    }
+                    else if (line.StartsWith("Mode"))
+                    {
+                        beatmap.IsMania = 3 == int.Parse(line.Split(':').Last());
+                    }
+
+                    if (is_hit_object && line != string.Empty)
+                    {
+                        try
+                        {
+                            Note note = new Note();
+                            string[] elements = line.Split(',');
+                            note.Column = (int)Math.Floor(int.Parse(elements[0]) * beatmap.Key / 512.0);
+                            note.TimeStamp = long.Parse(elements[2]);
+                            long end_time = long.Parse(elements[5].Split(':')[0]);
+                            note.Duration = (int.Parse(elements[3]) & 128) != 0 ? end_time - note.TimeStamp : 0L;
+                            notes.Add(note);
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.E(e.StackTrace);
+                        }
+                    }
+
+                }
+            }
+
+            if (!beatmap.IsMania)
+            {
+                Logger.E("Currently ManiaRTRender only supports osu!mania mode!");
+                return null;
+            }
+
+            if (beatmap.Key <= 0)
+            {
+                Logger.E("Cannot parse key.");
+                return null;
+            }
+
+            if (double.IsNaN(od))
+            {
+                Logger.W("Cannot parse od. Use od = 0.");
+                od = 0;
+            }
+
+            beatmap.JudgementWindow = GetJudgementWindow(od, modsInfo);
+            beatmap.Notes = notes;
+
+            if (modsInfo.HasMod(ModsInfo.Mods.Mirror))
+            {
+                foreach (Note n in beatmap.Notes) n.Column = beatmap.Key - n.Column - 1;
+            }
+            if (modsInfo.HasMod(ModsInfo.Mods.Random))
+            {
+                Logger.W("Currently Random mod is not supported. It will not work correctly.");
+            }
+            return beatmap;
+        }
+
+        public static double GetSpeedRatio(ModsInfo mods_info)
+        {
+            if (mods_info.HasMod(ModsInfo.Mods.DoubleTime))
+            {
+                return 1.5;
+            }
+            else if (mods_info.HasMod(ModsInfo.Mods.HalfTime))
+            {
+                return 0.75;
+            }
+            else
+            {
+                return 1.0;
+            }
+        }
+    }
+}
