@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using static ManiaRTRender.ManiaRTRenderPlugin;
 
 namespace ManiaRTRender
 {
@@ -169,22 +170,28 @@ namespace ManiaRTRender
             });
 
             // 3. draw hold highlight
-            int index = BinarySearchTime(rawEvents, time, (hitEvent) => hitEvent.TimeStamp);
-            for (int i = 0; i < key; i++)
+            try
             {
-                for (int j = index; j >= 0 && time - rawEvents[j].TimeStamp <= HOLD_LOOSE; j--)
+                int index = BinarySearchTime(rawEvents, time, (hitEvent) => hitEvent.TimeStamp);
+                for (int i = 0; i < key; i++)
                 {
-                    int hold = (int)rawEvents[j].X;
-
-                    if ((hold & (1 << i)) != 0)
+                    for (int j = index; j >= 0 && time - rawEvents[j].TimeStamp <= HOLD_LOOSE; j--)
                     {
-                        int color = (int)(255.0 * Math.Pow(HOLD_LOOSE_ALPHA, time - rawEvents[j].TimeStamp));
-                        if (j == index) color = 255;
-                        color = Math.Min(Math.Max(0, color), 255);
-                        DrawNote(i, Setting.NoteHeight, 0, Color.FromArgb(color, color, color), false, true);
-                        break;
+                        int hold = (int)rawEvents[j].X;
+
+                        if ((hold & (1 << i)) != 0)
+                        {
+                            int color = (int)(255.0 * Math.Pow(HOLD_LOOSE_ALPHA, time - rawEvents[j].TimeStamp));
+                            if (j == index) color = 255;
+                            color = Math.Min(Math.Max(0, color), 255);
+                            DrawNote(i, Setting.NoteHeight, 0, Color.FromArgb(color, color, color), false, true);
+                            break;
+                        }
                     }
                 }
+            } catch (Exception ex)
+            {
+                Logger.E(ex.StackTrace);
             }
         }
 
