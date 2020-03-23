@@ -12,9 +12,9 @@ namespace ManiaRTRender
 {
     public static class OsuUtils
     {
-        private static readonly double[] BASE_JUDGEMENT_OFFSET = new double[] { 16.5, 64.5, 97.5, 127.5, 151.5, 188.5 };
-        private static readonly double[] BASE_JUDGEMENT_OFFSET_HR = new double[] { 11.5, 45.5, 69.5, 90.5, 107.5, 133.5 };
-        private static readonly double[] BASE_JUDGEMENT_OFFSET_EZ = new double[] { 22.5, 89.5, 135.5, 177.5, 211.5, 263.5 };
+        private static readonly double[] BASE_JUDGEMENT_OFFSET = new double[] { 16.5, 64, 97, 127, 151, 188 };
+        private static readonly double[] BASE_JUDGEMENT_OFFSET_HR = new double[] { 11.5, 45, 69, 90, 107, 133 };
+        private static readonly double[] BASE_JUDGEMENT_OFFSET_EZ = new double[] { 22.5, 89, 135, 177, 211, 263 };
         private static readonly double DECREMENT_NONE = 3.0;
         private static readonly double DECREMENT_HR = 2.1;
         private static readonly double DECREMENT_EZ = 4.2;
@@ -56,6 +56,7 @@ namespace ManiaRTRender
                 result[i] -= decrement * od;
                 result[i] *= speedRatio;
             }
+            Logger.I($"Judgement window: [{string.Join(", ", result)}]");
             return result;
         }
 

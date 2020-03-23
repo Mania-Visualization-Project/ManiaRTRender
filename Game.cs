@@ -56,8 +56,6 @@ namespace ManiaRTRender
                 return;
             }
             
-
-            Logger.E($"reset due to start");
             Beatmap = currentBeatmap;
 
             Reset();
@@ -71,8 +69,6 @@ namespace ManiaRTRender
         public void Stop()
         {
             Status = GameStatus.Stop;
-            Logger.E("reset due to stop");
-
             Reset();
         }
 
@@ -105,23 +101,35 @@ namespace ManiaRTRender
         private Note FindTarget(Action action)
         {
             LinkedListNode<Note> list_node = NotesToJudgement.First;
+            LinkedListNode<Note> candidate_node = null;
+            long candidate_diff = 0;
             while (list_node != null)
             {
                 Note note = list_node.Value;
                 if (note.Column == action.Column)
                 {
-                    long diff = note.TimeStamp - action.TimeStamp;
-                    if (Math.Abs(diff) > Beatmap.JudgementWindow.Last())
+                    long diff = action.TimeStamp - note.TimeStamp;
+                    bool tooEarly = -diff > Beatmap.JudgementWindow[(int)Judgement.MISS]; // exclude early misses
+                    bool tooLate = diff > Beatmap.JudgementWindow[(int)Judgement.J_50];
+                    if (tooEarly) break;
+                    bool hit = !tooEarly && !tooLate;
+                    if (hit)
                     {
-                        if (diff > 0) break;
-                    }
-                    else
-                    {
-                        NotesToJudgement.Remove(list_node);
-                        return note;
+                        if (candidate_node == null || (diff > 0 && candidate_diff > 0))
+                        {
+                            candidate_node = list_node;
+                            candidate_diff = diff;
+                        }
                     }
                 }
                 list_node = list_node.Next;
+            }
+
+            if (candidate_node != null)
+            {
+                Note note = candidate_node.Value;
+                NotesToJudgement.Remove(candidate_node);
+                return note;
             }
 
             return null;
@@ -186,7 +194,8 @@ namespace ManiaRTRender
                 interval = 0;
                 Status = GameStatus.Pause;
             }
-            return LastPlayingTime + (long)(interval * rate);
+            long PlayingOffset = PlayType == PlayType.Playing ? TimeSynchronizeInterval : 0;
+            return LastPlayingTime + (long)(interval * rate) - PlayingOffset;
         }
 
         public void SynchronizeTime(long pt)
@@ -208,7 +217,6 @@ namespace ManiaRTRender
             rate = (double)playing_interval / system_interval;
 
             SetTime(pt);
-            Logger.E($"pt: {pt}");
         }
 
         private void SetTime(long pt)
@@ -282,15 +290,16 @@ namespace ManiaRTRender
 
             ActionIndex = count;
 
-            int[] judgeCount = new int[6];
-            if (Beatmap != null)
-            {
-                foreach (Note n in Beatmap.Notes)
-                {
-                    judgeCount[(int)n.Judgement] += 1;
-                }
-                Logger.E($"{judgeCount[0]} {judgeCount[1]} {judgeCount[2]} {judgeCount[3]} {judgeCount[4]} {judgeCount[5]} ");
-            }
+            // for debug
+            //int[] judgeCount = new int[6];
+            //if (Beatmap != null)
+            //{
+            //    foreach (Note n in Beatmap.Notes)
+            //    {
+            //        judgeCount[(int)n.Judgement] += 1;
+            //    }
+            //    Logger.E($"Judgement: {judgeCount[0]} {judgeCount[1]} {judgeCount[2]} {judgeCount[3]} {judgeCount[4]} {judgeCount[5]} ");
+            //}
         }
 
     }

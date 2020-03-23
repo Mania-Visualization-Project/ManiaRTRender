@@ -4,10 +4,8 @@ using OsuRTDataProvider.Listen;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
-using static ManiaRTRender.ManiaRTRenderPlugin;
 
 namespace ManiaRTRender
 {
@@ -15,6 +13,7 @@ namespace ManiaRTRender
     {
         private GLControl glControl;
         private Game game;
+        private PictureBox bg;
         private long renderCount;
 
         private LinkedList<Note> notesToRender = new LinkedList<Note>();
@@ -26,24 +25,21 @@ namespace ManiaRTRender
         private int timeWindow;
 
         // Render parameters
-        private static int SPEED = 25;
         private static int FPS = 60;
-        private static int BLOCK_HEIGHT = 40;
         private static int GAME_WIDTH = 540;
         private static int GAME_HEIGHT = 960;
-        private static int ACTION_HEIGHT = 5;
         private static double COLUMN_PADDING_RATIO = 0.1;
-        private static int LINE_WIDTH = 3;
 
         private static double SPEED_RATIO = FPS / 60.0;
         private static int TIME_INTERVAL = (int)Math.Round(1000.0 / FPS);
         private static int HOLD_LOOSE = 500;
         private static double HOLD_LOOSE_ALPHA = Math.Pow(1 / 255.0, 1.0 / HOLD_LOOSE);
 
-        public RenderManager(GLControl glControl, Game game)
+        public RenderManager(GLControl glControl, Game game, PictureBox bg)
         {
             this.glControl = glControl;
             this.game = game;
+            this.bg = bg;
             renderCount = 0;
         }
 
@@ -108,11 +104,16 @@ namespace ManiaRTRender
 
         private void RenderGame()
         {
-            if (game.Status == GameStatus.Stop || game.Beatmap == null) return;
+            if (game.Status == GameStatus.Stop || game.Beatmap == null)
+            {
+                bg.Visible = true;
+                return;
+            }
+            bg.Visible = false;
 
             int key = game.Beatmap.Key;
             columnWidth = (int)((double)GAME_WIDTH / key);
-            timeWindow = (int)((double)GAME_HEIGHT / SPEED * TIME_INTERVAL * SPEED_RATIO * game.SpeedRatio);
+            timeWindow = (int)((double)GAME_HEIGHT / Setting.Speed * TIME_INTERVAL * SPEED_RATIO * game.SpeedRatio);
 
             long time = game.GetPlayingTime();
             if (time <= -10000 || time >= 1000000000) return;
@@ -180,7 +181,7 @@ namespace ManiaRTRender
                         int color = (int)(255.0 * Math.Pow(HOLD_LOOSE_ALPHA, time - rawEvents[j].TimeStamp));
                         if (j == index) color = 255;
                         color = Math.Min(Math.Max(0, color), 255);
-                        DrawNote(i, BLOCK_HEIGHT, 0, Color.FromArgb(color, color, color), false, true);
+                        DrawNote(i, Setting.NoteHeight, 0, Color.FromArgb(color, color, color), false, true);
                         break;
                     }
                 }
@@ -214,11 +215,11 @@ namespace ManiaRTRender
         private void DrawNote(int index, int y, int duration, Color color, bool isAction, bool shouldFill)
         {
             int x = (int)(index * columnWidth);
-            int h = Math.Max(BLOCK_HEIGHT, TimeToHeight(duration));
+            int h = Math.Max(Setting.NoteHeight, TimeToHeight(duration));
             int width = columnWidth;
             if (isAction)
             {
-                h = ACTION_HEIGHT;
+                h = Setting.HitHeight;
                 x += width / 5;
                 width -= 2 * width / 5;
             }
@@ -234,7 +235,7 @@ namespace ManiaRTRender
 
         private void DrawActionLN(Action action, long currentTime, Color color)
         {
-            int width = ACTION_HEIGHT / 2;
+            int width = Setting.HitHeight / 2;
             int x = (int)(action.Column * columnWidth) + columnWidth / 2;
             int y = TimeToHeight(currentTime - action.TimeStamp);
             int h = TimeToHeight(action.Duration);
@@ -269,7 +270,7 @@ namespace ManiaRTRender
             }
             else
             {
-                GL.LineWidth(LINE_WIDTH);
+                GL.LineWidth(Setting.NoteStrokeWidth);
                 GL.Disable(EnableCap.LineStipple);
                 GL.Begin(PrimitiveType.LineLoop);
                 GL.Vertex3(x1, GAME_HEIGHT - y1, 0);

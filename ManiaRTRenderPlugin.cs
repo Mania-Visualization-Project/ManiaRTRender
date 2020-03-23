@@ -3,6 +3,7 @@ using OsuRTDataProvider.Mods;
 using Sync;
 using Sync.Plugins;
 using Sync.Tools;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Forms;
@@ -24,7 +25,13 @@ namespace ManiaRTRender
 
         public ManiaRTRenderPlugin() : base("ManiaRTRender", "Kuit")
         {
+            new PluginConfigurationManager(this).AddItem(new SettingIni());
             EventBus.BindEvent<PluginEvents.LoadCompleteEvent>(OnAllPluginLoadedFinish);
+        }
+
+        public override void OnEnable()
+        {
+            Sync.Tools.IO.CurrentIO.WriteColor(getName() + " By " + getAuthor(), ConsoleColor.DarkCyan);
         }
 
         private void OnAllPluginLoadedFinish(PluginEvents.LoadCompleteEvent loadCompleteEvent)

@@ -19,12 +19,19 @@ namespace ManiaRTRender
             this.BackColor = Color.Black;
             this.SetStyle(ControlStyles.ResizeRedraw, true); // this is to avoid visual artifacts
 
-            renderManager = new RenderManager(glControl, game);
+            renderManager = new RenderManager(glControl, game, bg);
 
-            glControl.MouseMove += GLMouseMove;
-            glControl.MouseDown += GLMouseDown;
-            glControl.MouseEnter += GLMouseEnter;
-            glControl.MouseLeave += GLMouseLeave;
+            SetupCallback(glControl);
+            SetupCallback(bg);
+
+            if (Setting.BackgroundPicture.Trim() != string.Empty)
+            {
+                bg.Image = new Bitmap(Setting.BackgroundPicture);
+            }
+            else
+            {
+                bg.Image = Properties.Resource.bg;
+            }
 
             fpsTimer = new System.Timers.Timer(1000);
             fpsTimer.Enabled = true;
@@ -34,6 +41,13 @@ namespace ManiaRTRender
             controlLabel.Hide();
         }
 
+        private void SetupCallback(Control control)
+        {
+            control.MouseMove += GLMouseMove;
+            control.MouseDown += GLMouseDown;
+            control.MouseEnter += GLMouseEnter;
+            control.MouseLeave += GLMouseLeave;
+        }
         private void CalculateFPS(object sender, ElapsedEventArgs e)
         {
             controlLabel.Text = $"FPS: {renderManager.GetRenderCountAndClear()}";
@@ -118,11 +132,14 @@ namespace ManiaRTRender
         private void GLMouseEnter(object sender, EventArgs e)
         {
             controlLabel.Show();
+            controlLabel.BringToFront();
+            BackColor = SystemColors.Highlight;
         }
 
         private void GLMouseLeave(object sender, EventArgs e)
         {
             controlLabel.Hide();
+            BackColor = Color.Black;
         }
 
         #endregion
