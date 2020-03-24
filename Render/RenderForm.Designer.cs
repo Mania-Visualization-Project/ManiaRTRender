@@ -47,7 +47,7 @@ namespace ManiaRTRender.Render
             this.glControl.Name = "glControl";
             this.glControl.Size = new System.Drawing.Size(344, 624);
             this.glControl.TabIndex = 0;
-            this.glControl.VSync = true;
+            this.glControl.VSync = Setting.IsVSync;
             // 
             // pictureBox1
             // 

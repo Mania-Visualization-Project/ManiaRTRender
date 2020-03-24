@@ -6,35 +6,42 @@ namespace ManiaRTRender
 {
     class SettingIni : IConfigurable
     {
-        [Integer(MinValue = 1, MaxValue = 40)]
+        [Integer(MinValue = 1, MaxValue = 40, RequireRestart = true)]
         public ConfigurationElement Speed
         {
             set => Setting.Speed = int.Parse(value);
             get => Setting.Speed.ToString();
         }
 
-        [Integer]
+        [Integer(MinValue = 0, MaxValue = 480, RequireRestart = true)]
+        public ConfigurationElement FPS
+        {
+            set => Setting.FPS = int.Parse(value);
+            get => Setting.FPS.ToString();
+        }
+
+        [Integer(RequireRestart = true)]
         public ConfigurationElement NoteHeight
         {
             set => Setting.NoteHeight = int.Parse(value);
             get => Setting.NoteHeight.ToString();
         }
 
-        [Integer]
+        [Integer(RequireRestart = true)]
         public ConfigurationElement HitHeight
         {
             set => Setting.HitHeight = int.Parse(value);
             get => Setting.HitHeight.ToString();
         }
 
-        [Integer]
+        [Integer(RequireRestart = true)]
         public ConfigurationElement NoteStrokeWidth
         {
             set => Setting.NoteStrokeWidth = int.Parse(value);
             get => Setting.NoteStrokeWidth.ToString();
         }
 
-        [String]
+        [String(RequireRestart = true)]
         public ConfigurationElement BackgroundPicture
         {
             set => Setting.BackgroundPicture = value;
@@ -57,9 +64,12 @@ namespace ManiaRTRender
     class Setting
     {
         public static int Speed = 25;
+        public static int FPS = 0;
         public static int NoteHeight = 40;
         public static int HitHeight = 5;
         public static int NoteStrokeWidth = 3;
         public static String BackgroundPicture = "";
+
+        public static bool IsVSync => FPS == 0;
     }
 }

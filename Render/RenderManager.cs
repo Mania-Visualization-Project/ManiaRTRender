@@ -6,6 +6,7 @@ using OsuRTDataProvider.Listen;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 using static ManiaRTRender.ManiaRTRenderPlugin;
@@ -19,6 +20,7 @@ namespace ManiaRTRender.Render
         private Game game;
         private PictureBox bg;
         private long renderCount;
+        private Stopwatch FpsStopwatch;
 
         private LinkedList<Note> notesToRender = new LinkedList<Note>();
         private LinkedList<Action> actionsToRender = new LinkedList<Action>();
@@ -29,10 +31,8 @@ namespace ManiaRTRender.Render
         private int timeWindow;
 
         // Render parameters
-        private static int FPS = 60;
         private static double COLUMN_PADDING_RATIO = 0.1;
-        private static double SPEED_RATIO = FPS / 60.0;
-        private static int TIME_INTERVAL = (int)Math.Round(1000.0 / FPS);
+        private static int TIME_INTERVAL = (int)Math.Round(1000.0 / 60);
         private static int HOLD_LOOSE = 500;
         private static double HOLD_LOOSE_ALPHA = Math.Pow(1 / 255.0, 1.0 / HOLD_LOOSE);
 
@@ -41,6 +41,7 @@ namespace ManiaRTRender.Render
             this.glControl = glControl;
             this.game = game;
             this.bg = bg;
+            this.FpsStopwatch = new Stopwatch();
             renderCount = 0;
         }
 
@@ -60,6 +61,8 @@ namespace ManiaRTRender.Render
 
             Application.Idle += AppIdle;
             GLResize(glControl, EventArgs.Empty);
+
+            if (!Setting.IsVSync) FpsStopwatch.Start();
         }
 
         public void Close(CancelEventArgs e)
@@ -71,7 +74,10 @@ namespace ManiaRTRender.Render
         {
             while (glControl.IsIdle)
             {
+                while (!Setting.IsVSync && FpsStopwatch.ElapsedMilliseconds * Setting.FPS < 1000); // spin lock
+
                 glControl.Invalidate();
+                if (!Setting.IsVSync) FpsStopwatch.Restart();
             }
         }
 
@@ -110,7 +116,7 @@ namespace ManiaRTRender.Render
 
             int key = game.Beatmap.Key;
             columnWidth = (int)((double)GLUtils.GAME_WIDTH / key);
-            timeWindow = (int)((double)GLUtils.GAME_HEIGHT / Setting.Speed * TIME_INTERVAL * SPEED_RATIO * game.SpeedRatio);
+            timeWindow = (int)((double)GLUtils.GAME_HEIGHT / Setting.Speed * TIME_INTERVAL * game.SpeedRatio);
 
             long time = game.GetPlayingTime();
             if (time <= -10000 || time >= 1000000000) return;
