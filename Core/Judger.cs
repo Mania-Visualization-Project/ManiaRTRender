@@ -96,14 +96,19 @@ namespace ManiaRTRender.Core
                 Logger.E("Action.Target == null!!!");
                 return;
             }
-            long diff = Math.Abs(action.EndTime - action.Target.EndTime);
-            diff = (long)(diff / 1.5); // LN lenience
-            action.JudgementEnd = GetJudgement(diff);
+            long end_diff = Math.Abs(action.EndTime - action.Target.EndTime);
+            end_diff = (long)(end_diff / 1.5); // LN lenience
+            action.JudgementEnd = GetJudgement(end_diff);
 
             // adjust target's judgement
             long start_diff = Math.Abs(action.TimeStamp - action.Target.TimeStamp);
-            diff = (diff + start_diff) / 2;
-            action.Target.Judgement = GetJudgement(diff);
+            long diff = (end_diff + start_diff) / 2;
+            Judgement judgement = GetJudgement(diff);
+            if (judgement == Judgement.MISS)
+            {
+                judgement = end_diff > 0 ? Judgement.J_100 : Judgement.J_50;
+            }
+            action.Target.Judgement = judgement;
         }
 
         public bool ShouldReset(List<HitEvent> rawEvents)
