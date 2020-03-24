@@ -21,6 +21,7 @@ namespace ManiaRTRender.Utils
         public static void DrawLine(int x1, int y1, int x2, int y2, int width, Color color, bool stipple)
         {
             GL.Color3(color);
+            GL.LineWidth(width);
             if (stipple)
             {
                 GL.LineStipple(1, 0x0F0F);
@@ -30,7 +31,7 @@ namespace ManiaRTRender.Utils
             {
                 GL.Disable(EnableCap.LineStipple);
             }
-            
+
             GL.Begin(PrimitiveType.Lines);
             GL.Vertex3(x1, GAME_HEIGHT - y1, 0);
             GL.Vertex3(x2, GAME_HEIGHT - y2, 0);

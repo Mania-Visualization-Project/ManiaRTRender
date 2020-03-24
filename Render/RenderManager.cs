@@ -253,7 +253,7 @@ namespace ManiaRTRender.Render
             int h = TimeToHeight(action.Duration);
             if (y < h || action.IsHolding) h = y;
 
-            GLUtils.DrawLine(x, y, x, y - h, width, color, false);
+            GLUtils.DrawLine(x, y - width, x, y - h, width, color, true);
         }
 
         private delegate void OnFind<T>(T obj);
