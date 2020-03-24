@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ManiaRTRender
+namespace ManiaRTRender.Core
 {
     public enum Judgement
     {
@@ -33,8 +30,7 @@ namespace ManiaRTRender
             Duration = (long)(Duration / rate);
             TimeStamp = (long)(TimeStamp / rate);
         }
-
-
+        
     }
 
     public class Note : BaseNote

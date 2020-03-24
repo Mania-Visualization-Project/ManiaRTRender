@@ -1,14 +1,13 @@
-﻿using OsuRTDataProvider.Mods;
+﻿using ManiaRTRender.Core;
+using OsuRTDataProvider.Mods;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static ManiaRTRender.ManiaRTRenderPlugin;
 
-namespace ManiaRTRender
+namespace ManiaRTRender.Utils
 {
     public static class OsuUtils
     {
@@ -68,6 +67,8 @@ namespace ManiaRTRender
             double od = double.NaN;
             List<Note> notes = new List<Note>();
 
+            Exception expInParsing = null;
+
             using (var fs = File.OpenRead(beatmap_file))
             using (StreamReader reader = new StreamReader(fs))
             {
@@ -124,11 +125,16 @@ namespace ManiaRTRender
                         }
                         catch (Exception e)
                         {
-                            Logger.E(e.StackTrace);
+                            expInParsing = e;
                         }
                     }
 
                 }
+            }
+
+            if (expInParsing != null)
+            {
+                Logger.W(expInParsing.StackTrace);
             }
 
             if (!beatmap.IsMania)

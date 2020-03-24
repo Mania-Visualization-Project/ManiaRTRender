@@ -1,4 +1,6 @@
-﻿using OpenTK;
+﻿using ManiaRTRender.Core;
+using ManiaRTRender.Utils;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OsuRTDataProvider.Listen;
 using System;
@@ -7,8 +9,9 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using static ManiaRTRender.ManiaRTRenderPlugin;
+using Action = ManiaRTRender.Core.Action;
 
-namespace ManiaRTRender
+namespace ManiaRTRender.Render
 {
     public partial class RenderManager
     {
@@ -27,10 +30,7 @@ namespace ManiaRTRender
 
         // Render parameters
         private static int FPS = 60;
-        private static int GAME_WIDTH = 540;
-        private static int GAME_HEIGHT = 960;
         private static double COLUMN_PADDING_RATIO = 0.1;
-
         private static double SPEED_RATIO = FPS / 60.0;
         private static int TIME_INTERVAL = (int)Math.Round(1000.0 / FPS);
         private static int HOLD_LOOSE = 500;
@@ -78,11 +78,7 @@ namespace ManiaRTRender
         void GLResize(object sender, EventArgs e)
         {
             GLControl c = sender as GLControl;
-
-            GL.Viewport(0, 0, c.ClientSize.Width, c.ClientSize.Height);
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadIdentity();
-            GL.Ortho(0, GAME_WIDTH, 0, GAME_HEIGHT, -1, 1);
+            GLUtils.Resize(c);
         }
 
         void GLPaint(object sender, PaintEventArgs e)
@@ -113,8 +109,8 @@ namespace ManiaRTRender
             bg.Visible = false;
 
             int key = game.Beatmap.Key;
-            columnWidth = (int)((double)GAME_WIDTH / key);
-            timeWindow = (int)((double)GAME_HEIGHT / Setting.Speed * TIME_INTERVAL * SPEED_RATIO * game.SpeedRatio);
+            columnWidth = (int)((double)GLUtils.GAME_WIDTH / key);
+            timeWindow = (int)((double)GLUtils.GAME_HEIGHT / Setting.Speed * TIME_INTERVAL * SPEED_RATIO * game.SpeedRatio);
 
             long time = game.GetPlayingTime();
             if (time <= -10000 || time >= 1000000000) return;
@@ -172,7 +168,7 @@ namespace ManiaRTRender
             // 3. draw hold highlight
             try
             {
-                int index = BinarySearchTime(rawEvents, time, (hitEvent) => hitEvent.TimeStamp);
+                int index = rawEvents.BinarySearch(time, (hitEvent) => hitEvent.TimeStamp);
                 for (int i = 0; i < key; i++)
                 {
                     for (int j = index; j >= 0 && time - rawEvents[j].TimeStamp <= HOLD_LOOSE; j--)
@@ -216,7 +212,7 @@ namespace ManiaRTRender
 
         private int TimeToHeight(long t)
         {
-            return (int)(((double)(t)) / timeWindow * GAME_HEIGHT);
+            return (int)(((double)(t)) / timeWindow * GLUtils.GAME_HEIGHT);
         }
 
         private void DrawNote(int index, int y, int duration, Color color, bool isAction, bool shouldFill)
@@ -231,13 +227,13 @@ namespace ManiaRTRender
                 width -= 2 * width / 5;
             }
             int yStart = y - h;
-            if (y >= GAME_HEIGHT) y = GAME_HEIGHT;
+            if (y >= GLUtils.GAME_HEIGHT) y = GLUtils.GAME_HEIGHT;
             if (yStart <= 0) yStart = 0;
             int padding = (int)(columnWidth * COLUMN_PADDING_RATIO);
             x += padding;
             width -= 2 * padding;
 
-            DrawRect(x, yStart, x + width, y, color, shouldFill);
+            GLUtils.DrawRect(x, yStart, x + width, y, color, shouldFill);
         }
 
         private void DrawActionLN(Action action, long currentTime, Color color)
@@ -248,83 +244,9 @@ namespace ManiaRTRender
             int h = TimeToHeight(action.Duration);
             if (y < h || action.IsHolding) h = y;
 
-            DrawStippleLine(x, y, y - h, color);
+            GLUtils.DrawStippleLine(x, y, y - h, color);
         }
 
-        private void DrawStippleLine(int x, int y1, int y2, Color color)
-        {
-            GL.Color3(color);
-            GL.LineStipple(1, 0x0F0F);
-            GL.Enable(EnableCap.LineStipple);
-            GL.Begin(PrimitiveType.Lines);
-            GL.Vertex3(x, GAME_HEIGHT - y1, 0);
-            GL.Vertex3(x, GAME_HEIGHT - y2, 0);
-            GL.End();
-        }
-
-        private void DrawRect(int x1, int y1, int x2, int y2, Color color, bool shouldFilled)
-        {
-            GL.Color3(color);
-
-            if (shouldFilled)
-            {
-                GL.Begin(PrimitiveType.Quads);
-                GL.Vertex3(x1, GAME_HEIGHT - y1, 0);
-                GL.Vertex3(x1, GAME_HEIGHT - y2, 0);
-                GL.Vertex3(x2, GAME_HEIGHT - y2, 0);
-                GL.Vertex3(x2, GAME_HEIGHT - y1, 0);
-                GL.End();
-            }
-            else
-            {
-                GL.LineWidth(Setting.NoteStrokeWidth);
-                GL.Disable(EnableCap.LineStipple);
-                GL.Begin(PrimitiveType.LineLoop);
-                GL.Vertex3(x1, GAME_HEIGHT - y1, 0);
-                GL.Vertex3(x1, GAME_HEIGHT - y2, 0);
-                GL.Vertex3(x2, GAME_HEIGHT - y2, 0);
-                GL.Vertex3(x2, GAME_HEIGHT - y1, 0);
-                GL.End();
-            }
-        }
-
-        private static int BinarySearchTime<T>(List<T> data, long val, GetTimeStamp<T> getter)
-        {
-            int start = 0;
-            int end = data.Count - 1;
-            if (start > end)
-            {
-                return start - 1;
-            }
-            if (val < getter(data[start]))
-            {
-                return start - 1;
-            }
-            else if (val > getter(data[end]))
-            {
-                return end;
-            }
-
-            while (start <= end)
-            {
-                int mid = (start + end) / 2;
-                if (getter(data[mid]) > val)
-                {
-                    end = mid - 1;
-                }
-                else if (getter(data[mid]) < val)
-                {
-                    start = mid + 1;
-                }
-                else
-                {
-                    return mid - 1;
-                }
-            }
-            return end;
-        }
-
-        private delegate long GetTimeStamp<T>(T obj);
         private delegate void OnFind<T>(T obj);
     }
 }

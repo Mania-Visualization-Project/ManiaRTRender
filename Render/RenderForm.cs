@@ -1,10 +1,11 @@
-﻿using System;
+﻿using ManiaRTRender.Core;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Timers;
 using System.Windows.Forms;
 
-namespace ManiaRTRender
+namespace ManiaRTRender.Render
 {
     public partial class RenderForm : Form
     {

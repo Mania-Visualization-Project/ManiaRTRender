@@ -1,6 +1,6 @@
 ﻿using OpenTK.Graphics;
 
-namespace ManiaRTRender
+namespace ManiaRTRender.Render
 {
     partial class RenderForm
     {
@@ -38,8 +38,8 @@ namespace ManiaRTRender
             // 
             // glControl
             // 
-            this.glControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.glControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.glControl.BackColor = System.Drawing.Color.Black;
             this.glControl.Location = new System.Drawing.Point(8, 8);

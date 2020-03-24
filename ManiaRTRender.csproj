@@ -56,23 +56,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="OsuUtils.cs" />
-    <Compile Include="Game.cs" />
-    <Compile Include="Note.cs" />
+    <Compile Include="Core\Judger.cs" />
+    <Compile Include="Utils\GLUtils.cs" />
+    <Compile Include="Utils\OsuUtils.cs" />
+    <Compile Include="Core\Game.cs" />
+    <Compile Include="Core\Note.cs" />
     <Compile Include="Properties\Resource.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resource.resx</DependentUpon>
     </Compile>
-    <Compile Include="RenderManager.cs" />
-    <Compile Include="RenderForm.cs">
+    <Compile Include="Render\RenderManager.cs" />
+    <Compile Include="Render\RenderForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="RenderForm.Designer.cs">
+    <Compile Include="Render\RenderForm.Designer.cs">
       <DependentUpon>RenderForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Setting.cs" />
-    <Compile Include="Utils.cs" />
+    <Compile Include="Utils\CollectionUtils.cs" />
     <Compile Include="ManiaRTRenderPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -95,7 +97,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="RenderForm.resx">
+    <EmbeddedResource Include="Render\RenderForm.resx">
       <DependentUpon>RenderForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
