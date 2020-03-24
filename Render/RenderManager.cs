@@ -129,6 +129,9 @@ namespace ManiaRTRender.Render
 
             List<HitEvent> rawEvents = game.RawEvents;
 
+            // 0. draw judgement line
+            GLUtils.DrawLine(0, Setting.NoteHeight + 2, GLUtils.GAME_WIDTH, Setting.NoteHeight + 2, 2, Color.Red, false);
+
             // 1. draw notes
             FindRenderingNotes(notesToRender, time, (note) =>
             {
@@ -238,13 +241,13 @@ namespace ManiaRTRender.Render
 
         private void DrawActionLN(Action action, long currentTime, Color color)
         {
-            int width = Setting.HitHeight / 2;
+            int width = Setting.HitHeight;
             int x = (int)(action.Column * columnWidth) + columnWidth / 2;
             int y = TimeToHeight(currentTime - action.TimeStamp);
             int h = TimeToHeight(action.Duration);
             if (y < h || action.IsHolding) h = y;
 
-            GLUtils.DrawStippleLine(x, y, y - h, color);
+            GLUtils.DrawLine(x, y, x, y - h, width, color, false);
         }
 
         private delegate void OnFind<T>(T obj);
