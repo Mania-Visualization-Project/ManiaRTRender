@@ -132,5 +132,10 @@ namespace ManiaRTRender.Utils
             GL.End();
 
         }
+
+        public static void DisableImage()
+        {
+            GL.Disable(EnableCap.Texture2D);
+        }
     }
 }

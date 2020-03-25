@@ -111,6 +111,7 @@ namespace ManiaRTRender.Render
                 GLUtils.DrawImage(Setting.BackgroundPicture);
                 return;
             }
+            GLUtils.DisableImage();
 
             int key = game.Beatmap.Key;
             columnWidth = (int)((double)GLUtils.GAME_WIDTH / key);
