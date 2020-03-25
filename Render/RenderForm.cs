@@ -20,19 +20,9 @@ namespace ManiaRTRender.Render
             this.BackColor = Color.Black;
             this.SetStyle(ControlStyles.ResizeRedraw, true); // this is to avoid visual artifacts
 
-            renderManager = new RenderManager(glControl, game, bg);
+            renderManager = new RenderManager(glControl, game);
 
             SetupCallback(glControl);
-            SetupCallback(bg);
-
-            if (Setting.BackgroundPicture.Trim() != string.Empty)
-            {
-                bg.Image = new Bitmap(Setting.BackgroundPicture);
-            }
-            else
-            {
-                bg.Image = Properties.Resource.bg;
-            }
 
             fpsTimer = new System.Timers.Timer(1000);
             fpsTimer.Enabled = true;

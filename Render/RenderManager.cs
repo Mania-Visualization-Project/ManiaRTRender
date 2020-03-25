@@ -18,7 +18,6 @@ namespace ManiaRTRender.Render
     {
         private GLControl glControl;
         private Game game;
-        private PictureBox bg;
         private long renderCount;
         private Stopwatch FpsStopwatch;
 
@@ -36,11 +35,10 @@ namespace ManiaRTRender.Render
         private static int HOLD_LOOSE = 500;
         private static double HOLD_LOOSE_ALPHA = Math.Pow(1 / 255.0, 1.0 / HOLD_LOOSE);
 
-        public RenderManager(GLControl glControl, Game game, PictureBox bg)
+        public RenderManager(GLControl glControl, Game game)
         {
             this.glControl = glControl;
             this.game = game;
-            this.bg = bg;
             this.FpsStopwatch = new Stopwatch();
             renderCount = 0;
         }
@@ -102,6 +100,7 @@ namespace ManiaRTRender.Render
 
             RenderGame();
 
+            GL.Flush();
             glControl.SwapBuffers();
         }
 
@@ -109,10 +108,9 @@ namespace ManiaRTRender.Render
         {
             if (game.Status == GameStatus.Stop || game.Beatmap == null)
             {
-                bg.Visible = true;
+                GLUtils.DrawImage(Setting.BackgroundPicture);
                 return;
             }
-            bg.Visible = false;
 
             int key = game.Beatmap.Key;
             columnWidth = (int)((double)GLUtils.GAME_WIDTH / key);

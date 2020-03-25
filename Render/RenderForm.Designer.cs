@@ -32,8 +32,6 @@ namespace ManiaRTRender.Render
         {
             this.glControl = new OpenTK.GLControl();
             this.controlLabel = new System.Windows.Forms.Label();
-            this.bg = new System.Windows.Forms.PictureBox();
-            ((System.ComponentModel.ISupportInitialize)(this.bg)).BeginInit();
             this.SuspendLayout();
             // 
             // glControl
@@ -49,32 +47,17 @@ namespace ManiaRTRender.Render
             this.glControl.TabIndex = 0;
             this.glControl.VSync = Setting.IsVSync;
             // 
-            // pictureBox1
-            // 
-            this.bg.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.bg.BackColor = System.Drawing.Color.Black;
-            this.bg.Location = new System.Drawing.Point(8, 8);
-            this.bg.Margin = new System.Windows.Forms.Padding(0);
-            this.bg.Name = "bg";
-            this.bg.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.bg.Size = new System.Drawing.Size(344, 624);
-            this.bg.TabIndex = 0;
-            // 
             // RenderForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(360, 640);
-            this.Controls.Add(this.bg);
             this.Controls.Add(this.controlLabel);
             this.Controls.Add(this.glControl);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "RenderForm";
             this.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.TopMost = true;
-            ((System.ComponentModel.ISupportInitialize)(this.bg)).EndInit();
             this.ResumeLayout(false);
             // 
             // controlLabel
@@ -95,6 +78,5 @@ namespace ManiaRTRender.Render
 
         private OpenTK.GLControl glControl;
         private System.Windows.Forms.Label controlLabel;
-        private System.Windows.Forms.PictureBox bg;
     }
 }
