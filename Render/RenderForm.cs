@@ -11,8 +11,10 @@ namespace ManiaRTRender.Render
     {
         private RenderManager renderManager;
         private System.Timers.Timer fpsTimer;
+        private int id = -1;
+        private string player = "Unknown Player";
 
-        public RenderForm(Game game)
+        public RenderForm(Game game, int id)
         {
             InitializeComponent();
             this.FormBorderStyle = FormBorderStyle.None; // no borders
@@ -30,6 +32,19 @@ namespace ManiaRTRender.Render
             fpsTimer.AutoReset = true;
 
             controlLabel.Hide();
+            UpdateTitle();
+        }
+
+        public void SetPlayer(string player)
+        {
+            this.player = player;
+            UpdateTitle();
+        }
+
+        private void UpdateTitle()
+        {
+            string id_string = id >= 0 ? $"({id}) " : "";
+            Text = $"{id_string}{player}";
         }
 
         private void SetupCallback(Control control)
@@ -41,7 +56,7 @@ namespace ManiaRTRender.Render
         }
         private void CalculateFPS(object sender, ElapsedEventArgs e)
         {
-            controlLabel.Text = $"FPS: {renderManager.GetRenderCountAndClear()}";
+            controlLabel.Text = $"{player} (FPS: {renderManager.GetRenderCountAndClear()})";
         }
 
         protected override void OnLoad(EventArgs e)

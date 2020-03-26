@@ -15,15 +15,7 @@ namespace ManiaRTRender
     //[SyncPluginDependency("7216787b-507b-4eef-96fb-e993722acf2e", Require = true)]
     public class ManiaRTRenderPlugin : Plugin
     {
-        public static Logger<ManiaRTRenderPlugin> logger = new Logger<ManiaRTRenderPlugin>();
-
-        private RenderForm renderForm;
-        private Game game;
-
-        private PlayType mPlayType = PlayType.Unknown;
-        private string mBeatMap = string.Empty;
-        private ModsInfo mModsInfo = ModsInfo.Empty;
-        private List<HitEvent> mHitEvents = new List<HitEvent>();
+        private List<GameController> GameControllers = new List<GameController>();
 
         public ManiaRTRenderPlugin() : base("ManiaRTRender", "Kuit")
         {
@@ -38,12 +30,6 @@ namespace ManiaRTRender
 
         private void OnAllPluginLoadedFinish(PluginEvents.LoadCompleteEvent loadCompleteEvent)
         {
-            game = new Game();
-            new Thread(() =>
-            {
-                renderForm = new RenderForm(game);
-                Application.Run(renderForm);
-            }).Start();
 
             SyncHost host = loadCompleteEvent.Host;
 
@@ -53,44 +39,18 @@ namespace ManiaRTRender
                 {
                     OsuRTDataProvider.OsuRTDataProviderPlugin reader = plugin as OsuRTDataProvider.OsuRTDataProviderPlugin;
 
-                    reader.ListenerManager.OnHitEventsChanged += (playType, hitEvents) =>
+                    if (reader.TourneyListenerManagersCount == 0)
                     {
-                        mPlayType = playType;
-                        mHitEvents = hitEvents;
-                        Process();
-                    };
-
-                    reader.ListenerManager.OnPlayingTimeChanged += (ms) =>
+                        GameControllers.Add(new GameController(-1, reader));
+                    }
+                    else
                     {
-                        game.SynchronizeTime(ms);
-                    };
-
-                    reader.ListenerManager.OnModsChanged += (mods) =>
-                    {
-                        mModsInfo = mods;
-                        Process();
-                    };
-
-                    reader.ListenerManager.OnBeatmapChanged += (beatmap) =>
-                    {
-                        mBeatMap = beatmap.FilenameFull;
-                        Process();
-                    };
+                        for (int i = 0; i < reader.TourneyListenerManagersCount; i++)
+                        {
+                            GameControllers.Add(new GameController(i, reader));
+                        }
+                    }
                 }
-            }
-        }
-
-        private void Process()
-        {
-            if (mPlayType == PlayType.Unknown)
-            {
-                game.Stop();
-                return;
-            }
-            if (mModsInfo != ModsInfo.Empty && mBeatMap != string.Empty)
-            {
-                game.Start(mBeatMap, mModsInfo);
-                game.SetHitEvents(mPlayType, mHitEvents);
             }
         }
 
