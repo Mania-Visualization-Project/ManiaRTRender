@@ -1,21 +1,20 @@
 ﻿using ManiaRTRender.Core;
-using ManiaRTRender.Render;
-using OsuRTDataProvider.Listen;
-using OsuRTDataProvider.Mods;
 using Sync;
 using Sync.Plugins;
 using Sync.Tools;
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Windows.Forms;
 
 namespace ManiaRTRender
 {
-    //[SyncPluginDependency("7216787b-507b-4eef-96fb-e993722acf2e", Require = true)]
+    [SyncPluginDependency("7216787b-507b-4eef-96fb-e993722acf2e", Version = "^1.6.1", Require = true)]
+    [SyncPluginID("f4cb1b67-a036-41ad-b596-dee5490d4637", VERSION)]
     public class ManiaRTRenderPlugin : Plugin
     {
         private List<GameController> GameControllers = new List<GameController>();
+        public const string PLUGIN_NAME = "ManiaRTRender";
+        public const string PLUGIN_AUTHOR = "Kuit";
+        public const string VERSION = "1.0.0";
 
         public ManiaRTRenderPlugin() : base("ManiaRTRender", "Kuit")
         {

@@ -1,10 +1,10 @@
 ﻿using ManiaRTRender.Render;
-using OsuRTDataProvider;
 using OsuRTDataProvider.Listen;
 using OsuRTDataProvider.Mods;
 using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Forms;
+using static ManiaRTRender.ManiaRTRenderPlugin;
 
 namespace ManiaRTRender.Core
 {
@@ -18,7 +18,7 @@ namespace ManiaRTRender.Core
         private ModsInfo mModsInfo = ModsInfo.Empty;
         private List<HitEvent> mHitEvents = new List<HitEvent>();
 
-        public GameController(int id, OsuRTDataProviderPlugin reader)
+        public GameController(int id, OsuRTDataProvider.OsuRTDataProviderPlugin reader)
         {
             OsuListenerManager manager = id < 0 ? reader.ListenerManager : reader.TourneyListenerManagers[id];
             game = new Game();
@@ -67,8 +67,10 @@ namespace ManiaRTRender.Core
             }
             if (mModsInfo != ModsInfo.Empty && mBeatMap != string.Empty)
             {
-                game.Start(mBeatMap, mModsInfo);
-                game.SetHitEvents(mPlayType, mHitEvents);
+                if (game.Start(mBeatMap, mModsInfo))
+                {
+                    game.SetHitEvents(mPlayType, mHitEvents);
+                }
             }
         }
     }

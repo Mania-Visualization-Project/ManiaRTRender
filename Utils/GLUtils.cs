@@ -69,7 +69,8 @@ namespace ManiaRTRender.Utils
             }
         }
 
-        private static string CurrentImagePath = "This is an impossible image path hhhhhhhh";
+        private static readonly string DEFAULT_PATH = "This is an impossible image path hhhhhhhh";
+        private static string CurrentImagePath = DEFAULT_PATH;
         private static int CurrentHandle = 0;
         private static bool HasLoadedImage = false;
 
@@ -114,6 +115,9 @@ namespace ManiaRTRender.Utils
 
             if (!HasLoadedImage) return;
 
+            // make GL_MODULATE happy
+            GL.Color3(1.0, 1.0, 1.0);
+
             GL.Enable(EnableCap.Texture2D);
             GL.BindTexture(TextureTarget.Texture2D, CurrentHandle);
 
@@ -136,6 +140,7 @@ namespace ManiaRTRender.Utils
         public static void DisableImage()
         {
             GL.Disable(EnableCap.Texture2D);
+            CurrentImagePath = DEFAULT_PATH;
         }
     }
 }

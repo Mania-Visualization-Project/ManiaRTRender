@@ -40,7 +40,7 @@ namespace ManiaRTRender.Core
 
         public bool Start(string beatmap_file, ModsInfo mods_info)
         {
-            if (Status != GameStatus.Stop) return false;
+            if (Status != GameStatus.Stop) return true;
             Beatmap = null;
             ManiaBeatmap currentBeatmap = OsuUtils.ReadBeatmap(beatmap_file, mods_info);
             if (currentBeatmap == null)
@@ -71,7 +71,10 @@ namespace ManiaRTRender.Core
             
             rate = 1.0;
             Actions.Clear();
-            Judger.init(Beatmap);
+            if (Beatmap != null)
+            {
+                Judger.init(Beatmap);
+            }
             SW.Restart();
 
             TryToJudge();
