@@ -16,6 +16,7 @@ namespace ManiaRTRender.Render
 {
     public partial class RenderManager
     {
+        private GLUtils.ImageContext imageContext = new GLUtils.ImageContext();
         private GLControl glControl;
         private Game game;
         private long renderCount;
@@ -92,6 +93,7 @@ namespace ManiaRTRender.Render
 
         private void Render()
         {
+
             renderCount += 1;
 
             GL.MatrixMode(MatrixMode.Modelview);
@@ -102,16 +104,17 @@ namespace ManiaRTRender.Render
 
             GL.Flush();
             glControl.SwapBuffers();
+
         }
 
         private void RenderGame()
         {
             if (game.Status == GameStatus.Stop || game.Beatmap == null)
             {
-                GLUtils.DrawImage(Setting.BackgroundPicture);
+                GLUtils.DrawImage(Setting.BackgroundPicture, imageContext);
                 return;
             }
-            GLUtils.DisableImage();
+            GLUtils.DisableImage(imageContext);
 
             int key = game.Beatmap.Key;
             columnWidth = (int)((double)GLUtils.GAME_WIDTH / key);

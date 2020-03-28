@@ -69,15 +69,20 @@ namespace ManiaRTRender.Utils
             }
         }
 
-        private static readonly string DEFAULT_PATH = "This is an impossible image path hhhhhhhh";
-        private static string CurrentImagePath = DEFAULT_PATH;
-        private static int CurrentHandle = 0;
-        private static bool HasLoadedImage = false;
 
-        private static void LoadImage(string image_path)
+        private static readonly string DEFAULT_PATH = "This is an impossible image path hhhhhhhh";
+
+        public class ImageContext
+        {
+            internal int CurrentHandler = 0;
+            internal string CurrentImagePath = DEFAULT_PATH;
+            internal bool HasLoadedImage = false;
+        }
+
+        private static void LoadImage(string image_path, ImageContext imageContext)
         {
             Bitmap bitmap;
-            CurrentImagePath = image_path;
+            imageContext.CurrentImagePath = image_path;
 
             try
             {
@@ -85,12 +90,12 @@ namespace ManiaRTRender.Utils
             } catch (Exception e)
             {
                 Logger.E($"Fail to load image from {image_path}: {e.Message}");
-                HasLoadedImage = false;
+                imageContext.HasLoadedImage = false;
                 return;
             }
 
-            GL.GenTextures(1, out CurrentHandle);
-            GL.BindTexture(TextureTarget.Texture2D, CurrentHandle);
+            GL.GenTextures(1, out imageContext.CurrentHandler);
+            GL.BindTexture(TextureTarget.Texture2D, imageContext.CurrentHandler);
 
             BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
                 ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
@@ -103,23 +108,23 @@ namespace ManiaRTRender.Utils
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
-            HasLoadedImage = true;
+            imageContext.HasLoadedImage = true;
         }
 
-        public static void DrawImage(string image_path)
+        public static void DrawImage(string image_path, ImageContext imageContext)
         {
-            if (image_path != CurrentImagePath)
+            if (image_path != imageContext.CurrentImagePath)
             {
-                LoadImage(image_path);
+                LoadImage(image_path, imageContext);
             }
 
-            if (!HasLoadedImage) return;
+            if (!imageContext.HasLoadedImage) return;
 
             // make GL_MODULATE happy
             GL.Color3(1.0, 1.0, 1.0);
 
             GL.Enable(EnableCap.Texture2D);
-            GL.BindTexture(TextureTarget.Texture2D, CurrentHandle);
+            GL.BindTexture(TextureTarget.Texture2D, imageContext.CurrentHandler);
 
             GL.Begin(PrimitiveType.Quads);
             GL.TexCoord2(0, 0);
@@ -137,10 +142,10 @@ namespace ManiaRTRender.Utils
 
         }
 
-        public static void DisableImage()
+        public static void DisableImage(ImageContext imageContext)
         {
             GL.Disable(EnableCap.Texture2D);
-            CurrentImagePath = DEFAULT_PATH;
+            imageContext.CurrentImagePath = DEFAULT_PATH;
         }
     }
 }
