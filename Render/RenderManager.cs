@@ -143,7 +143,8 @@ namespace ManiaRTRender.Render
                 long dt = time - note.TimeStamp;
                 int y = TimeToHeight(dt);
                 Color color;
-                if (dt <= game.Beatmap.JudgementWindow[5] && note.Judgement == Judgement.MISS)
+                if (dt <= game.Beatmap.JudgementWindow[(int)Judgement.MISS] - Setting.ORTDPListenInterval 
+                    && note.Judgement == Judgement.MISS)
                 {
                     color = OsuUtils.COLOR_LIGHT;
                 }

@@ -28,7 +28,6 @@ namespace ManiaRTRender.Core
 
         public long LastPlayingTime;
         private long LastSystemTime;
-        private long TimeSynchronizeInterval = 100;
         public double rate; // for replay rate
 
         public Game()
@@ -104,12 +103,13 @@ namespace ManiaRTRender.Core
         {
             if (Status != GameStatus.Playing) return LastPlayingTime;
             long interval = SW.ElapsedMilliseconds - LastSystemTime;
-            if (interval >= 1.5 * TimeSynchronizeInterval)
+            if (interval >= 1.5 * Setting.ORTDPListenInterval)
             {
+                // wait for too long time, pause!
                 interval = 0;
                 Status = GameStatus.Pause;
             }
-            long PlayingOffset = PlayType == PlayType.Playing ? TimeSynchronizeInterval : 0;
+            long PlayingOffset = PlayType == PlayType.Playing ? Setting.ORTDPListenInterval : 0;
             return LastPlayingTime + (long)(interval * rate) - PlayingOffset;
         }
 

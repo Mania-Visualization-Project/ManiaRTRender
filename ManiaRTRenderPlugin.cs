@@ -16,7 +16,7 @@ namespace ManiaRTRender
         public const string PLUGIN_AUTHOR = "Kuit";
         public const string VERSION = "1.0.0";
 
-        public ManiaRTRenderPlugin() : base("ManiaRTRender", "Kuit")
+        public ManiaRTRenderPlugin() : base(PLUGIN_NAME, PLUGIN_AUTHOR)
         {
             new PluginConfigurationManager(this).AddItem(new SettingIni());
             EventBus.BindEvent<PluginEvents.LoadCompleteEvent>(OnAllPluginLoadedFinish);
@@ -49,6 +49,9 @@ namespace ManiaRTRender
                             GameControllers.Add(new GameController(i, reader));
                         }
                     }
+
+                    // fetch ListenInterval from ORTDP ini because there is no API.
+                    new PluginConfigurationManager(reader).AddItem(new ORTDPSetting.SettingIni());
                 }
             }
         }

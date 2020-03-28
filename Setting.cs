@@ -4,6 +4,36 @@ using System;
 
 namespace ManiaRTRender
 {
+
+    namespace ORTDPSetting
+    {
+        class SettingIni : IConfigurable
+        {
+            [Integer(MinValue = 1, MaxValue = 10000)]
+            public ConfigurationElement ListenInterval
+            {
+                set 
+                {
+                    ManiaRTRenderPlugin.Logger.I($"ORTDP's ListenInterval: {value}");
+                    Setting.ORTDPListenInterval = int.Parse(value);
+                }
+                get => Setting.ORTDPListenInterval.ToString();
+            }
+
+            public void onConfigurationLoad()
+            {
+            }
+
+            public void onConfigurationReload()
+            {
+            }
+
+            public void onConfigurationSave()
+            {
+            }
+        }
+    }
+
     class SettingIni : IConfigurable
     {
         [Integer(MinValue = 1, MaxValue = 40, RequireRestart = true)]
@@ -71,5 +101,7 @@ namespace ManiaRTRender
         public static String BackgroundPicture = "";
 
         public static bool IsVSync => FPS == 0;
+
+        public static int ORTDPListenInterval = 100;
     }
 }
