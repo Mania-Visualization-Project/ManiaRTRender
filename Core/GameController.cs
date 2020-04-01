@@ -1,16 +1,18 @@
 ﻿using ManiaRTRender.Render;
 using OsuRTDataProvider.Listen;
 using OsuRTDataProvider.Mods;
+using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Windows.Forms;
+using System.Diagnostics;
+using System.IO;
+using static ManiaRTRender.ManiaRTRenderPlugin;
 
 namespace ManiaRTRender.Core
 {
     class GameController
     {
-        private RenderForm renderForm;
         private Game game;
+        private RenderServer renderServer;
 
         private PlayType mPlayType = PlayType.Unknown;
         private string mBeatMap = string.Empty;
@@ -19,13 +21,9 @@ namespace ManiaRTRender.Core
 
         public GameController(int id, OsuRTDataProvider.OsuRTDataProviderPlugin reader)
         {
-            OsuListenerManager manager = id < 0 ? reader.ListenerManager : reader.TourneyListenerManagers[id];
+            OsuListenerManager manager = reader.ListenerManager;//id < 0 ? reader.ListenerManager : reader.TourneyListenerManagers[id];
             game = new Game();
-            new Thread(() =>
-            {
-                renderForm = new RenderForm(game, id);
-                Application.Run(renderForm);
-            }).Start();
+            renderServer = new RenderServer(game, id);
 
             manager.OnHitEventsChanged += (playType, hitEvents) =>
             {
@@ -53,7 +51,7 @@ namespace ManiaRTRender.Core
 
             manager.OnPlayerChanged += (string player) =>
             {
-                renderForm.SetPlayer(player);
+                renderServer.OnPlayerChange(player);
             };
         }
 

@@ -1,26 +1,27 @@
-﻿using ManiaRTRender.Core;
+﻿using IpcLibrary;
+using ManiaRTRender.Core;
 using ManiaRTRender.Utils;
-using OpenTK;
-using OpenTK.Graphics.OpenGL;
 using OsuRTDataProvider.Listen;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
-using System.Windows.Forms;
+using System.IO;
+using System.Threading.Tasks;
 using static ManiaRTRender.ManiaRTRenderPlugin;
 using Action = ManiaRTRender.Core.Action;
 
 namespace ManiaRTRender.Render
 {
-    public partial class RenderManager
+    // use ipc to send render commands to RenderClient
+    public partial class RenderServer
     {
-        private GLUtils.ImageContext imageContext = new GLUtils.ImageContext();
-        private GLControl glControl;
         private Game game;
-        private long renderCount;
-        private Stopwatch FpsStopwatch;
+        private int remoteId = -1;
+        private RemoteRenderCommand remoteRenderCommand;
+        private List<LineEvent> LineEvents = new List<LineEvent>();
+        private List<RectEvent> RectEvents = new List<RectEvent>();
+        private string PlayerName = "Unknown";
 
         private LinkedList<Note> notesToRender = new LinkedList<Note>();
         private LinkedList<Action> actionsToRender = new LinkedList<Action>();
@@ -36,89 +37,82 @@ namespace ManiaRTRender.Render
         private static int HOLD_LOOSE = 500;
         private static double HOLD_LOOSE_ALPHA = Math.Pow(1 / 255.0, 1.0 / HOLD_LOOSE);
 
-        public RenderManager(GLControl glControl, Game game)
+        public RenderServer(Game game, int id)
         {
-            this.glControl = glControl;
             this.game = game;
-            this.FpsStopwatch = new Stopwatch();
-            renderCount = 0;
-        }
 
-        public long GetRenderCountAndClear()
-        {
-            long count = renderCount;
-            renderCount = 0;
-            return count;
-        }
+            // register IPC
+            remoteId = SerializeUtils.InitShareMemory(IpcConstants.GetRenderObjName(id), IpcConstants.SIZE_RENDER);
+            remoteRenderCommand = new RemoteRenderCommand();
+            sendCommand();
 
-        public void Load(EventArgs e)
-        {
-            glControl.Resize += new EventHandler(GLResize);
-            glControl.Paint += new PaintEventHandler(GLPaint);
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
+            path = Path.Combine(path, "RenderClient.exe");
+            Process process = new Process();
+            ProcessStartInfo startInfo = new ProcessStartInfo(path, $"{id}");
+            process.StartInfo = startInfo;
+            process.StartInfo.UseShellExecute = false;
+            process.Start();
 
-            GL.ClearColor(Color.Black);
-
-            Application.Idle += AppIdle;
-            GLResize(glControl, EventArgs.Empty);
-
-            if (!Setting.IsVSync) FpsStopwatch.Start();
-        }
-
-        public void Close(CancelEventArgs e)
-        {
-            Application.Idle -= AppIdle;
-        }
-
-        void AppIdle(object sender, EventArgs e)
-        {
-            while (glControl.IsIdle)
+            Task.Run(() =>
             {
-                while (!Setting.IsVSync && FpsStopwatch.ElapsedMilliseconds * Setting.FPS < 1000); // spin lock
+                try
+                {
+                    while (true)
+                    {
+                        fetchCommand();
+                        while (!remoteRenderCommand.RequestUpdate)
+                        {
+                            fetchCommand();
+                        }
+                        RenderGame();
 
-                glControl.Invalidate();
-                if (!Setting.IsVSync) FpsStopwatch.Restart();
-            }
+                        remoteRenderCommand.PlayerName = PlayerName;
+                        remoteRenderCommand.RectEvents = RectEvents;
+                        remoteRenderCommand.LineEvents = LineEvents;
+                        remoteRenderCommand.RequestUpdate = false;
+                        sendCommand();
+                    }
+                } catch (Exception e)
+                {
+                    Logger.E(e.StackTrace);
+                }
+                
+            });
         }
 
-        void GLResize(object sender, EventArgs e)
+        byte[] buff = new byte[65536];
+        private void sendCommand()
         {
-            GLControl c = sender as GLControl;
-            GLUtils.Resize(c);
+            int length = remoteRenderCommand.Write(ref buff, 0);
+            SerializeUtils.Save(remoteId, ref buff, length);
         }
 
-        void GLPaint(object sender, PaintEventArgs e)
+        private void fetchCommand()
         {
-            Render();
+            SerializeUtils.Fetch(remoteId, ref buff);
+            remoteRenderCommand.Read(ref buff, 0);
         }
 
-        private void Render()
+        public void OnPlayerChange(string player)
         {
-
-            renderCount += 1;
-
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadIdentity();
-            GL.Clear(ClearBufferMask.ColorBufferBit);
-
-            RenderGame();
-
-            GL.Flush();
-            glControl.SwapBuffers();
-
+            PlayerName = player;
         }
 
         private void RenderGame()
         {
+            LineEvents.Clear();
+            RectEvents.Clear();
             if (game.Status == GameStatus.Stop || game.Beatmap == null)
             {
-                GLUtils.DrawImage(Setting.BackgroundPicture, imageContext);
+                remoteRenderCommand.DrawBackground = true;
                 return;
             }
-            GLUtils.DisableImage(imageContext);
+            remoteRenderCommand.DrawBackground = false;
 
             int key = game.Beatmap.Key;
-            columnWidth = (int)((double)GLUtils.GAME_WIDTH / key);
-            timeWindow = (int)((double)GLUtils.GAME_HEIGHT / Setting.Speed * TIME_INTERVAL * game.SpeedRatio);
+            columnWidth = (int)((double)IpcConstants.GAME_WIDTH / key);
+            timeWindow = (int)((double)IpcConstants.GAME_HEIGHT / Setting.Speed * TIME_INTERVAL * game.SpeedRatio);
 
             long time = game.GetPlayingTime();
             if (time <= -10000 || time >= 1000000000) return;
@@ -138,7 +132,16 @@ namespace ManiaRTRender.Render
             List<HitEvent> rawEvents = game.RawEvents;
 
             // 0. draw judgement line
-            GLUtils.DrawLine(0, Setting.NoteHeight + 2, GLUtils.GAME_WIDTH, Setting.NoteHeight + 2, 2, Color.Red, false);
+            LineEvents.Add(new LineEvent
+            {
+                x1 = 0,
+                y1 = Setting.NoteHeight + 2,
+                x2 = IpcConstants.GAME_WIDTH,
+                y2 = Setting.NoteHeight + 2,
+                width = 2,
+                color = Color.Red,
+                stipple = false
+            });
 
             // 1. draw notes
             FindRenderingNotes(notesToRender, time, (note) =>
@@ -224,7 +227,7 @@ namespace ManiaRTRender.Render
 
         private int TimeToHeight(long t)
         {
-            return (int)(((double)(t)) / timeWindow * GLUtils.GAME_HEIGHT);
+            return (int)(((double)(t)) / timeWindow * IpcConstants.GAME_HEIGHT);
         }
 
         private void DrawNote(int index, int y, int duration, Color color, bool isAction, bool shouldFill)
@@ -239,13 +242,21 @@ namespace ManiaRTRender.Render
                 width -= 2 * width / 5;
             }
             int yStart = y - h;
-            if (y >= GLUtils.GAME_HEIGHT) y = GLUtils.GAME_HEIGHT;
+            if (y >= IpcConstants.GAME_HEIGHT) y = IpcConstants.GAME_HEIGHT;
             if (yStart <= 0) yStart = 0;
             int padding = (int)(columnWidth * COLUMN_PADDING_RATIO);
             x += padding;
             width -= 2 * padding;
 
-            GLUtils.DrawRect(x, yStart, x + width, y, color, shouldFill);
+            RectEvents.Add(new RectEvent
+            {
+                x1 = x,
+                y1 = yStart,
+                x2 = x + width,
+                y2 = y,
+                color = color,
+                shouldFilled = shouldFill
+            });
         }
 
         private void DrawActionLN(Action action, long currentTime, Color color)
@@ -256,7 +267,16 @@ namespace ManiaRTRender.Render
             int h = TimeToHeight(action.Duration);
             if (y < h || action.IsHolding) h = y;
 
-            GLUtils.DrawLine(x, y - width, x, y - h, width, color, true);
+            LineEvents.Add(new LineEvent
+            {
+                x1 = x,
+                y1 = y - width,
+                x2 = x,
+                y2 = y - h,
+                width = width,
+                color = color,
+                stipple = true
+            });
         }
 
         private delegate void OnFind<T>(T obj);

@@ -1,4 +1,6 @@
-﻿using Sync.Tools;
+﻿using IpcLibrary;
+using ManiaRTRender.Utils;
+using Sync.Tools;
 using Sync.Tools.ConfigurationAttribute;
 using System;
 
@@ -22,6 +24,7 @@ namespace ManiaRTRender
 
             public void onConfigurationLoad()
             {
+                Setting.SyncConfig(false);
             }
 
             public void onConfigurationReload()
@@ -80,6 +83,7 @@ namespace ManiaRTRender
 
         public void onConfigurationLoad()
         {
+            Setting.SyncConfig(true);
         }
 
         public void onConfigurationReload()
@@ -101,7 +105,32 @@ namespace ManiaRTRender
         public static String BackgroundPicture = "";
 
         public static bool IsVSync => FPS == 0;
-
         public static int ORTDPListenInterval = 100;
+
+        private static bool SettingLoaded = false;
+        private static bool ORTDPLoaded = false;
+
+        public static void SyncConfig(bool isSetting)
+        {
+            if (isSetting) SettingLoaded = true;
+            else ORTDPLoaded = true;
+
+            if (SettingLoaded && ORTDPLoaded)
+            {
+                RemoteConfig remoteConfig = new RemoteConfig();
+                remoteConfig.FPS = Setting.FPS;
+                remoteConfig.HitHeight = Setting.HitHeight;
+                remoteConfig.NoteHeight = Setting.NoteHeight;
+                remoteConfig.NoteStrokeWidth = Setting.NoteStrokeWidth;
+                remoteConfig.ORTDPListenInterval = Setting.ORTDPListenInterval;
+                remoteConfig.Speed = Setting.Speed;
+                remoteConfig.BackgroundPicture = Setting.BackgroundPicture;
+                remoteConfig.Loaded = true;
+
+                byte[] buff = new byte[65536];
+                int length = remoteConfig.Write(ref buff, 0);
+                SerializeUtils.Save(RemoteConfig.id, ref buff, length);
+            }
+        }
     }
 }

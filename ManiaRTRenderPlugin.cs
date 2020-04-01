@@ -1,9 +1,12 @@
-﻿using ManiaRTRender.Core;
+﻿using IpcLibrary;
+using ManiaRTRender.Core;
+using ManiaRTRender.Utils;
 using Sync;
 using Sync.Plugins;
 using Sync.Tools;
 using System;
 using System.Collections.Generic;
+using System.Runtime.Remoting.Channels.Ipc;
 
 namespace ManiaRTRender
 {
@@ -18,6 +21,20 @@ namespace ManiaRTRender
 
         public ManiaRTRenderPlugin() : base(PLUGIN_NAME, PLUGIN_AUTHOR)
         {
+
+            //IpcUtils.RegisterObj(IpcConstants.OBJECT_CONFIG_NAME, RemoteConfig.INSTANCE);
+            try
+            {
+                RemoteConfig.id = SerializeUtils.InitShareMemory(IpcConstants.OBJECT_CONFIG_NAME, IpcConstants.SIZE_CONFIG);
+                byte[] buff = new byte[4096];
+                int length = new RemoteConfig().Write(ref buff, 0);
+                SerializeUtils.Save(RemoteConfig.id, ref buff, length);
+            } catch (Exception e)
+            {
+                Logger.E(e.StackTrace);
+            }
+            
+
             new PluginConfigurationManager(this).AddItem(new SettingIni());
             EventBus.BindEvent<PluginEvents.LoadCompleteEvent>(OnAllPluginLoadedFinish);
         }
@@ -29,7 +46,6 @@ namespace ManiaRTRender
 
         private void OnAllPluginLoadedFinish(PluginEvents.LoadCompleteEvent loadCompleteEvent)
         {
-
             SyncHost host = loadCompleteEvent.Host;
 
             foreach (var plugin in host.EnumPluings())
@@ -38,9 +54,13 @@ namespace ManiaRTRender
                 {
                     OsuRTDataProvider.OsuRTDataProviderPlugin reader = plugin as OsuRTDataProvider.OsuRTDataProviderPlugin;
 
+                    // fetch ListenInterval from ORTDP ini because there is no API.
+                    new PluginConfigurationManager(reader).AddItem(new ORTDPSetting.SettingIni());
+
                     if (reader.TourneyListenerManagersCount == 0)
                     {
-                        GameControllers.Add(new GameController(-1, reader));
+                        GameControllers.Add(new GameController(0, reader));
+                        //GameControllers.Add(new GameController(1, reader));
                     }
                     else
                     {
@@ -50,8 +70,7 @@ namespace ManiaRTRender
                         }
                     }
 
-                    // fetch ListenInterval from ORTDP ini because there is no API.
-                    new PluginConfigurationManager(reader).AddItem(new ORTDPSetting.SettingIni());
+                   
                 }
             }
         }

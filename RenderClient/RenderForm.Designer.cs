@@ -1,7 +1,6 @@
-﻿using OpenTK.Graphics;
-
-namespace ManiaRTRender.Render
+﻿namespace RenderClient
 {
+
     partial class RenderForm
     {
         /// <summary>
@@ -45,7 +44,7 @@ namespace ManiaRTRender.Render
             this.glControl.Name = "glControl";
             this.glControl.Size = new System.Drawing.Size(344, 624);
             this.glControl.TabIndex = 0;
-            this.glControl.VSync = Setting.IsVSync;
+            this.glControl.VSync = false; // TODO: Setting.IsVSync;
             // 
             // RenderForm
             // 

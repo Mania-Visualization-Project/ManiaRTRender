@@ -1,28 +1,30 @@
-﻿using ManiaRTRender.Core;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Threading;
 using System.Timers;
 using System.Windows.Forms;
 
-namespace ManiaRTRender.Render
+namespace RenderClient
 {
     public partial class RenderForm : Form
     {
-        private RenderManager renderManager;
+        private RenderClient renderClient;
         private System.Timers.Timer fpsTimer;
         private int id = -1;
-        private string player = "Unknown Player";
+        private SynchronizationContext syncContext = SynchronizationContext.Current;
 
-        public RenderForm(Game game, int id)
+        public RenderForm(int id)
         {
             InitializeComponent();
+            syncContext = SynchronizationContext.Current;
             this.FormBorderStyle = FormBorderStyle.None; // no borders
             this.DoubleBuffered = true;
             this.BackColor = Color.Black;
             this.SetStyle(ControlStyles.ResizeRedraw, true); // this is to avoid visual artifacts
+            this.id = id;
 
-            renderManager = new RenderManager(glControl, game);
+            renderClient = new RenderClient(glControl, id);
 
             SetupCallback(glControl);
 
@@ -35,16 +37,10 @@ namespace ManiaRTRender.Render
             UpdateTitle();
         }
 
-        public void SetPlayer(string player)
-        {
-            this.player = player;
-            UpdateTitle();
-        }
-
         private void UpdateTitle()
         {
-            string id_string = id >= 0 ? $"({id}) " : "";
-            Text = $"{id_string}{player}";
+            //string id_string = id >= 0 ? $"({id}) " : "";
+            Text = $"ManiaRTRender ({id})";
         }
 
         private void SetupCallback(Control control)
@@ -54,20 +50,26 @@ namespace ManiaRTRender.Render
             control.MouseEnter += GLMouseEnter;
             control.MouseLeave += GLMouseLeave;
         }
+
         private void CalculateFPS(object sender, ElapsedEventArgs e)
         {
-            controlLabel.Text = $"{player} (FPS: {renderManager.GetRenderCountAndClear()})";
+            syncContext.Post(UpdateControlLabel, $"{renderClient.PlayerName} (FPS: {renderClient.GetRenderCountAndClear()})");
+        }
+
+        private void UpdateControlLabel(object text)
+        {
+            controlLabel.Text = text.ToString();
         }
 
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            renderManager.Load(e);
+            renderClient.Load(e);
         }
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            renderManager.Close(e);
+            renderClient.Close(e);
             base.OnClosing(e);
         }
 
