@@ -35,6 +35,7 @@ ManiaRTRender supports modifying falling speed, background picture, rendering FP
 |-|-|-
 |Speed|25|falling speed (not recommended to be too fast)
 |BackgroundPicture||picture path, showing when the game hasn't started yet (empty to show default background)
+|BackgroundPictureInPlaying||picture path, showing when the game starts (empty to show black background)
 |FPS|0|rendering FPS (0 to enable VSync)
 |NoteHeight|40|height of notes
 |HitHeight|5|height of hit objects

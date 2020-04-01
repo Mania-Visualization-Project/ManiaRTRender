@@ -33,6 +33,7 @@ ManiaRTRender支持修改下落速度、背景图片、渲染帧数以及UI元�
 |-|-|-
 |Speed|25|下落速度（建议不要过大）
 |BackgroundPicture||游戏未开始时的背景图片（为空则显示默认背景）
+|BackgroundPictureInPlaying||游戏开始时的背景图片（为空则为黑色）
 |FPS|0|渲染帧数（为0则开启垂直同步）
 |NoteHeight|40|note高度
 |HitHeight|5|打击位置高度

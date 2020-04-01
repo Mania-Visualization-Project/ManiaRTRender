@@ -17,7 +17,7 @@ namespace ManiaRTRender
         private List<GameController> GameControllers = new List<GameController>();
         public const string PLUGIN_NAME = "ManiaRTRender";
         public const string PLUGIN_AUTHOR = "Kuit";
-        public const string VERSION = "1.0.1";
+        public const string VERSION = "1.1.0";
 
         public ManiaRTRenderPlugin() : base(PLUGIN_NAME, PLUGIN_AUTHOR)
         {
