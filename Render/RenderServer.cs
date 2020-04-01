@@ -49,7 +49,7 @@ namespace ManiaRTRender.Render
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins");
             path = Path.Combine(path, "RenderClient.exe");
             Process process = new Process();
-            ProcessStartInfo startInfo = new ProcessStartInfo(path, $"{id}");
+            ProcessStartInfo startInfo = new ProcessStartInfo(path, $"{id} {Process.GetCurrentProcess().Id}");
             process.StartInfo = startInfo;
             process.StartInfo.UseShellExecute = false;
             process.Start();

@@ -13,6 +13,10 @@ namespace RenderClient
     {
         private GLUtils.ImageContext imageContext = new GLUtils.ImageContext();
         private GLControl glControl;
+        private Form container;
+
+        private bool hideInIdle = false;
+
         private long renderCount;
         private Stopwatch FpsStopwatch;
         private RemoteRenderCommand renderCommand = new RemoteRenderCommand();
@@ -20,9 +24,10 @@ namespace RenderClient
             
         public string PlayerName { get; private set; }
 
-        public RenderClient(GLControl glControl, int id)
+        public RenderClient(GLControl glControl, Form container, int id)
         {
             this.glControl = glControl;
+            this.container = container;
             this.FpsStopwatch = new Stopwatch();
             renderCount = 0;
 
@@ -30,8 +35,29 @@ namespace RenderClient
             PlayerName = "Unknown";
         }
 
+        public void SetHideInIdle(bool hideInIdle)
+        {
+            this.hideInIdle = hideInIdle;
+        }
+
         public long GetRenderCountAndClear()
         {
+            // hide form if need
+            // In the same thread, don't worry for data hazard.
+            FetchCommand();
+            RequestUpdate();
+            if (renderCommand.DrawBackground && hideInIdle)
+            {
+                Console.WriteLine("hide");
+
+                container.Hide();
+            }
+            else
+            {
+                Console.WriteLine("show");
+                container.Show();
+            }
+
             long count = renderCount;
             renderCount = 0;
             return count;
@@ -90,12 +116,12 @@ namespace RenderClient
 
             renderCount += 1;
 
+            FetchCommand();
+
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadIdentity();
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
-            SerializeUtils.Fetch(RemoteID, ref buff);
-            renderCommand.Read(ref buff, 0);
             // notify server to render from now on
 
             if (renderCommand.RequestUpdate)
@@ -104,10 +130,7 @@ namespace RenderClient
             }
             else
             {
-                RemoteRenderCommand dummyCommand = new RemoteRenderCommand();
-                dummyCommand.RequestUpdate = true;
-                int length = dummyCommand.Write(ref buff, 0);
-                SerializeUtils.Save(RemoteID, ref buff, length);
+                RequestUpdate();
 
                 PlayerName = renderCommand.PlayerName;
                 //Console.WriteLine($"{PlayerName}");
@@ -119,6 +142,20 @@ namespace RenderClient
 
             GL.Flush();
             glControl.SwapBuffers();
+        }
+
+        private void FetchCommand()
+        {
+            SerializeUtils.Fetch(RemoteID, ref buff);
+            renderCommand.Read(ref buff, 0);
+        }
+
+        private void RequestUpdate()
+        {
+            RemoteRenderCommand dummyCommand = new RemoteRenderCommand();
+            dummyCommand.RequestUpdate = true;
+            int length = dummyCommand.Write(ref buff, 0);
+            SerializeUtils.Save(RemoteID, ref buff, length);
         }
 
         private void RenderFrame()

@@ -8,13 +8,16 @@ namespace RenderClient
 {
     static class Program
     {
+        public static int ParentId = -1;
         /// <summary>
         /// 应用程序的主入口点。
         /// </summary>
         [STAThread]
         static int Main(string[] args)
         {
-            if (args.Length != 1) return args.Length;
+            //args = new string[] { "0" };
+            if (args.Length != 2) return -args.Length;
+            ParentId = int.Parse(args[1]);
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

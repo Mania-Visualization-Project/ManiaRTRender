@@ -13,6 +13,7 @@ namespace RenderClient
         private System.Timers.Timer fpsTimer;
         private int id = -1;
         private SynchronizationContext syncContext = SynchronizationContext.Current;
+        private long fpsCallbackCount = 0;
 
         public RenderForm(int id)
         {
@@ -24,11 +25,11 @@ namespace RenderClient
             this.SetStyle(ControlStyles.ResizeRedraw, true); // this is to avoid visual artifacts
             this.id = id;
 
-            renderClient = new RenderClient(glControl, id);
+            renderClient = new RenderClient(glControl, this, id);
 
             SetupCallback(glControl);
 
-            fpsTimer = new System.Timers.Timer(1000);
+            fpsTimer = new System.Timers.Timer(250);
             fpsTimer.Enabled = true;
             fpsTimer.Elapsed += new ElapsedEventHandler(CalculateFPS);
             fpsTimer.AutoReset = true;
@@ -53,12 +54,34 @@ namespace RenderClient
 
         private void CalculateFPS(object sender, ElapsedEventArgs e)
         {
-            syncContext.Post(UpdateControlLabel, $"{renderClient.PlayerName} (FPS: {renderClient.GetRenderCountAndClear()})");
+            Console.WriteLine("calculate");
+            syncContext.Post(UpdateControlLabel, null);
+
+            fpsCallbackCount += 1;
+            // search for sync.exe every 10 seconds
+            if (fpsCallbackCount % 10 == 0)
+            {
+                fpsCallbackCount = 0;
+
+                bool hasSync = false;
+                
+                System.Diagnostics.Process[] processList = System.Diagnostics.Process.GetProcesses();
+                foreach (System.Diagnostics.Process process in processList)
+                {
+                    if (process.Id == Program.ParentId)
+                    {
+                        hasSync = true;
+                        break;
+                    }
+                }
+
+                if (!hasSync) Close();
+            }
         }
 
-        private void UpdateControlLabel(object text)
+        private void UpdateControlLabel(object obj)
         {
-            controlLabel.Text = text.ToString();
+            controlLabel.Text = $"{renderClient.PlayerName} (FPS: {renderClient.GetRenderCountAndClear() * 4})";
         }
 
         protected override void OnLoad(EventArgs e)
@@ -94,6 +117,24 @@ namespace RenderClient
 
         Rectangle TopLeft { get { return new Rectangle(0, 0, _, _); } }
         Rectangle TopRight { get { return new Rectangle(this.ClientSize.Width - _, 0, _, _); } }
+
+        private void hideToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            hideToolStripMenuItem.Checked = !hideToolStripMenuItem.Checked;
+            renderClient.SetHideInIdle(hideToolStripMenuItem.Checked);
+        }
+
+        private void topMostToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            topMostToolStripMenuItem.Checked = !topMostToolStripMenuItem.Checked;
+            TopMost = topMostToolStripMenuItem.Checked;
+        }
+
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
         Rectangle BottomLeft { get { return new Rectangle(0, this.ClientSize.Height - _, _, _); } }
         Rectangle BottomRight { get { return new Rectangle(this.ClientSize.Width - _, this.ClientSize.Height - _, _, _); } }
 
