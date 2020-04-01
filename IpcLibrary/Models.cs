@@ -20,6 +20,7 @@ namespace IpcLibrary
         public int HitHeight = 0;
         public int NoteStrokeWidth = 0;
         public String BackgroundPicture = "";
+        public String BackgroundPictureInPlaying = "";
         public int ORTDPListenInterval = 0;
 
         public bool Loaded = false;
@@ -34,6 +35,7 @@ namespace IpcLibrary
             start = SerializeUtils.WriteInt(HitHeight, ref buff, start);
             start = SerializeUtils.WriteInt(NoteStrokeWidth, ref buff, start);
             start = SerializeUtils.WriteString(ref BackgroundPicture, ref buff, start);
+            start = SerializeUtils.WriteString(ref BackgroundPictureInPlaying, ref buff, start);
             start = SerializeUtils.WriteInt(ORTDPListenInterval, ref buff, start);
             start = SerializeUtils.WriteBool(Loaded, ref buff, start);
             return start;
@@ -47,6 +49,7 @@ namespace IpcLibrary
             start = SerializeUtils.ReadInt(out HitHeight, ref buff, start);
             start = SerializeUtils.ReadInt(out NoteStrokeWidth, ref buff, start);
             start = SerializeUtils.ReadString(out BackgroundPicture, ref buff, start);
+            start = SerializeUtils.ReadString(out BackgroundPictureInPlaying, ref buff, start);
             start = SerializeUtils.ReadInt(out ORTDPListenInterval, ref buff, start);
             start = SerializeUtils.ReadBool(out Loaded, ref buff, start);
             return start;

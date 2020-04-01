@@ -11,6 +11,7 @@ namespace RenderClient
         public static int HitHeight = 5;
         public static int NoteStrokeWidth = 3;
         public static string BackgroundPicture = "";
+        public static string BackgroundPictureInPlaying = "";
 
         public static bool IsVSync => FPS == 0;
         public static int ORTDPListenInterval = 100;
@@ -38,6 +39,7 @@ namespace RenderClient
                 HitHeight = remoteConfig.HitHeight;
                 NoteStrokeWidth = remoteConfig.NoteStrokeWidth;
                 BackgroundPicture = remoteConfig.BackgroundPicture;
+                BackgroundPictureInPlaying = remoteConfig.BackgroundPictureInPlaying;
                 HasInit = true;
                 return true;
             }

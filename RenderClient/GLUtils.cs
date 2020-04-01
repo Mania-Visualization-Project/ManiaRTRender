@@ -115,7 +115,8 @@ namespace RenderClient
             if (!imageContext.HasLoadedImage) return;
 
             // make GL_MODULATE happy
-            GL.Color3(1.0, 1.0, 1.0);
+            //GL.Color3(1.0, 1.0, 1.0);
+            GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.TextureEnvMode, (int)All.Replace);
 
             GL.Enable(EnableCap.Texture2D);
             GL.BindTexture(TextureTarget.Texture2D, imageContext.CurrentHandler);
@@ -133,7 +134,7 @@ namespace RenderClient
             GL.TexCoord2(0, 1);
             GL.Vertex2(0, 0);
             GL.End();
-
+            GL.Disable(EnableCap.Texture2D);
         }
 
         public static void DisableImage(ImageContext imageContext)

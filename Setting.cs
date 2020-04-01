@@ -81,6 +81,13 @@ namespace ManiaRTRender
             get => Setting.BackgroundPicture;
         }
 
+        [String(RequireRestart = true)]
+        public ConfigurationElement BackgroundPictureInPlaying
+        {
+            set => Setting.BackgroundPictureInPlaying = value;
+            get => Setting.BackgroundPictureInPlaying;
+        }
+
         public void onConfigurationLoad()
         {
             Setting.SyncConfig(true);
@@ -103,6 +110,7 @@ namespace ManiaRTRender
         public static int HitHeight = 5;
         public static int NoteStrokeWidth = 3;
         public static String BackgroundPicture = "";
+        public static String BackgroundPictureInPlaying = "";
 
         public static bool IsVSync => FPS == 0;
         public static int ORTDPListenInterval = 100;
@@ -125,6 +133,7 @@ namespace ManiaRTRender
                 remoteConfig.ORTDPListenInterval = Setting.ORTDPListenInterval;
                 remoteConfig.Speed = Setting.Speed;
                 remoteConfig.BackgroundPicture = Setting.BackgroundPicture;
+                remoteConfig.BackgroundPictureInPlaying = Setting.BackgroundPictureInPlaying;
                 remoteConfig.Loaded = true;
 
                 byte[] buff = new byte[65536];

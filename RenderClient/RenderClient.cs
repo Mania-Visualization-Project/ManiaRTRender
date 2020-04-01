@@ -12,6 +12,7 @@ namespace RenderClient
     public partial class RenderClient
     {
         private GLUtils.ImageContext imageContext = new GLUtils.ImageContext();
+        private GLUtils.ImageContext imageForegroundContext = new GLUtils.ImageContext();
         private GLControl glControl;
         private Form container;
 
@@ -168,6 +169,15 @@ namespace RenderClient
             }
 
             GLUtils.DisableImage(imageContext);
+
+            if (Setting.BackgroundPictureInPlaying != "")
+            {
+                GLUtils.DrawImage(Setting.BackgroundPictureInPlaying, imageForegroundContext);
+            }
+            else
+            {
+                GLUtils.DisableImage(imageForegroundContext);
+            }
 
             var lineEvents = renderCommand.LineEvents;
             var rectEvents = renderCommand.RectEvents;
