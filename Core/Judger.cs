@@ -15,6 +15,7 @@ namespace ManiaRTRender.Core
         double[] JudgementWindow;
         private Dictionary<int, Action> CurrentHolding = new Dictionary<int, Action>();
 
+
         public void init(ManiaBeatmap beatmap)
         {
             NotesToJudge.CopyFrom(beatmap.Notes);
@@ -118,65 +119,69 @@ namespace ManiaRTRender.Core
 
         public void TryToJudge(List<HitEvent> rawEvents, List<Action> actions)
         {
-            int count = rawEvents.Count;
-            int last_hold = ActionIndex == 0 ? 0 : (int)rawEvents[ActionIndex - 1].X;
-            for (int i = ActionIndex; i < count; i++)
+            lock (this)
             {
-                int x = (int)rawEvents[i].X;
-                long t = rawEvents[i].TimeStamp;
-
-                for (int j = 0; j < Key; j++)
+                int count = rawEvents.Count;
+                int last_hold = ActionIndex == 0 ? 0 : (int)rawEvents[ActionIndex - 1].X;
+                for (int i = ActionIndex; i < count; i++)
                 {
-                    bool is_holding = (x & 1) != 0;
-                    bool last_is_holding = (last_hold & 1) != 0;
+                    int x = (int)rawEvents[i].X;
+                    long t = rawEvents[i].TimeStamp;
 
-                    if (is_holding)
+                    for (int j = 0; j < Key; j++)
                     {
-                        if (!last_is_holding)
+                        bool is_holding = (x & 1) != 0;
+                        bool last_is_holding = (last_hold & 1) != 0;
+
+                        if (is_holding)
                         {
-                            // release -> hold: create new action
-                            Action action = new Action
+                            if (!last_is_holding)
                             {
-                                Column = j,
-                                TimeStamp = t
-                            };
-                            bool is_ln = JudgeHold(action);
-                            if (is_ln)
-                            {
-                                CurrentHolding[j] = action;
-                                action.IsHolding = true;
-                                action.Duration = 30000000L; // mark a very long value
+                                // release -> hold: create new action
+                                Action action = new Action
+                                {
+                                    Column = j,
+                                    TimeStamp = t
+                                };
+                                bool is_ln = JudgeHold(action);
+                                if (is_ln)
+                                {
+                                    CurrentHolding[j] = action;
+                                    action.IsHolding = true;
+                                    action.Duration = 30000000L; // mark a very long value
+                                }
+                                actions.Add(action);
                             }
-                            actions.Add(action);
+                            else
+                            {
+                                // hold -> hold: do nothing
+                            }
                         }
                         else
                         {
-                            // hold -> hold: do nothing
-                        }
-                    }
-                    else
-                    {
-                        if (last_is_holding)
-                        {
-                            // hold -> release: process only if it holds a LN
-                            if (CurrentHolding.ContainsKey(j))
+                            if (last_is_holding)
                             {
-                                CurrentHolding[j].IsHolding = false;
-                                CurrentHolding[j].Duration = t - CurrentHolding[j].TimeStamp;
-                                JudgeRelease(CurrentHolding[j]);
-                                CurrentHolding.Remove(j);
+                                // hold -> release: process only if it holds a LN
+                                if (CurrentHolding.ContainsKey(j))
+                                {
+                                    CurrentHolding[j].IsHolding = false;
+                                    CurrentHolding[j].Duration = t - CurrentHolding[j].TimeStamp;
+                                    JudgeRelease(CurrentHolding[j]);
+                                    CurrentHolding.Remove(j);
+                                }
                             }
                         }
+
+                        x /= 2;
+                        last_hold /= 2;
                     }
 
-                    x /= 2;
-                    last_hold /= 2;
+                    last_hold = (int)rawEvents[i].X;
                 }
 
-                last_hold = (int)rawEvents[i].X;
+                ActionIndex = count;
             }
-
-            ActionIndex = count;
+            
 
             // for debug
             //int[] judgeCount = new int[6];
