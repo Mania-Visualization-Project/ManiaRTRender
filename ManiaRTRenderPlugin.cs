@@ -59,7 +59,7 @@ namespace ManiaRTRender
 
                     if (reader.TourneyListenerManagersCount == 0)
                     {
-                        GameControllers.Add(new GameController(0, reader));
+                        GameControllers.Add(new GameController(-1, reader));
                         //GameControllers.Add(new GameController(1, reader));
                     }
                     else

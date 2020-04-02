@@ -21,6 +21,9 @@ namespace RenderClient
         private long renderCount;
         private Stopwatch FpsStopwatch;
         private RemoteRenderCommand renderCommand = new RemoteRenderCommand();
+        private RemoteRenderCommand preCommand = new RemoteRenderCommand();
+        private RemoteRenderCommand targetCommand = null;
+
         private int RemoteID = -1;
             
         public string PlayerName { get; private set; }
@@ -82,7 +85,6 @@ namespace RenderClient
             Application.Idle -= AppIdle;
         }
 
-        private long last = 0;
         void AppIdle(object sender, EventArgs e)
         {
             while (glControl.IsIdle)
@@ -107,9 +109,9 @@ namespace RenderClient
         }
 
         private byte[] buff = new byte[65536];
+
         private void Render()
         {
-            last = FpsStopwatch.ElapsedMilliseconds;
             if (Setting.SyncIfNeed())
             {
                 glControl.VSync = Setting.IsVSync;
@@ -118,19 +120,26 @@ namespace RenderClient
             renderCount += 1;
 
             FetchCommand();
+            targetCommand = renderCommand;
 
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadIdentity();
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             // notify server to render from now on
+            Console.WriteLine($"{preCommand.RequestUpdate}!!");
 
-            if (renderCommand.RequestUpdate)
+            if (targetCommand.RequestUpdate)
             {
                 Console.WriteLine("Loss a frame!!!");
+                // render with precious command to avoid flash
+                targetCommand = preCommand;
             }
-            else
+
+            if (!targetCommand.RequestUpdate)
             {
+                preCommand.Read(ref buff, 0);
+
                 RequestUpdate();
 
                 PlayerName = renderCommand.PlayerName;
@@ -138,8 +147,6 @@ namespace RenderClient
 
                 RenderFrame();
             }
-
-            Console.WriteLine($"{FpsStopwatch.ElapsedMilliseconds - last}");
 
             GL.Flush();
             glControl.SwapBuffers();
@@ -161,8 +168,9 @@ namespace RenderClient
 
         private void RenderFrame()
         {
+            if (targetCommand == null) return;
 
-            if (renderCommand.DrawBackground)
+            if (targetCommand.DrawBackground)
             {
                 GLUtils.DrawImage(Setting.BackgroundPicture, imageContext);
                 return;
@@ -179,8 +187,8 @@ namespace RenderClient
                 GLUtils.DisableImage(imageForegroundContext);
             }
 
-            var lineEvents = renderCommand.LineEvents;
-            var rectEvents = renderCommand.RectEvents;
+            var lineEvents = targetCommand.LineEvents;
+            var rectEvents = targetCommand.RectEvents;
 
             foreach (var lineEvent in lineEvents)
             {

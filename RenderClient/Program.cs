@@ -1,5 +1,6 @@
 ﻿using IpcLibrary;
 using System;
+using System.Diagnostics;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Windows.Forms;
@@ -15,7 +16,7 @@ namespace RenderClient
         [STAThread]
         static int Main(string[] args)
         {
-            //args = new string[] { "0" };
+            //args = new string[] { "0", $"{Process.GetCurrentProcess().Id}" };
             if (args.Length != 2) return -args.Length;
             ParentId = int.Parse(args[1]);
 
