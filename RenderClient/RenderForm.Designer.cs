@@ -61,7 +61,7 @@
             this.topMostToolStripMenuItem,
             this.closeToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(226, 104);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(226, 82);
             // 
             // hideToolStripMenuItem
             // 
@@ -72,8 +72,10 @@
             // 
             // topMostToolStripMenuItem
             // 
+            this.topMostToolStripMenuItem.Checked = true;
+            this.topMostToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.topMostToolStripMenuItem.Name = "topMostToolStripMenuItem";
-            this.topMostToolStripMenuItem.Size = new System.Drawing.Size(225, 24);
+            this.topMostToolStripMenuItem.Size = new System.Drawing.Size(225, 26);
             this.topMostToolStripMenuItem.Text = "Top Most";
             this.topMostToolStripMenuItem.Click += new System.EventHandler(this.topMostToolStripMenuItem_Click);
             // 
