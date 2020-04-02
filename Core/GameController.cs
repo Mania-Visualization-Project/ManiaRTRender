@@ -21,7 +21,7 @@ namespace ManiaRTRender.Core
 
         public GameController(int id, OsuRTDataProvider.OsuRTDataProviderPlugin reader)
         {
-            OsuListenerManager manager = reader.ListenerManager;//id < 0 ? reader.ListenerManager : reader.TourneyListenerManagers[id];
+            OsuListenerManager manager = id < 0 ? reader.ListenerManager : reader.TourneyListenerManagers[id];
             game = new Game();
             renderServer = new RenderServer(game, id);
 
