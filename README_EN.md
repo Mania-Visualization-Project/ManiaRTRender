@@ -26,6 +26,15 @@ DEMO: https://www.bilibili.com/video/BV1vE411c73P
 
 4. Open Sync.exe。
 
+## Function Menu
+Right click in the tool window will open a function menu, as follows.
+
+![](Screenshots/menu.png)
+
+- Hide Window in Idle: If checked, The whole renderer window will be hidden when the game is idle, and will show again after game starts.
+- Top Most: If checked, the renderer will remain at the top of the screen.
+- Close: Close the renderer window. Note: this operation is not reversible. You will need to restart sync.exe to reopen the renderer window.
+
 ## Configuration
 
 ManiaRTRender supports modifying falling speed, background picture, rendering FPS and UI sizes. You can modify {OsuSync}/config.ini directly (under `[ManiaRTRender.SettingIni]`). Also, you can use ConfigGUI plugin to modify it by GUI.

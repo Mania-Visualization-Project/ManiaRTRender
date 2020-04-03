@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace RenderClient
@@ -17,6 +18,7 @@ namespace RenderClient
         private Form container;
 
         private bool hideInIdle = false;
+        private bool isHidden = false;
 
         private long renderCount;
         private Stopwatch FpsStopwatch;
@@ -47,19 +49,23 @@ namespace RenderClient
         public long GetRenderCountAndClear()
         {
             // hide form if need
-            // In the same thread, don't worry for data hazard.
-            FetchCommand();
-            RequestUpdate();
+            if (isHidden)
+            {
+                // In the same thread, don't worry for data hazard.
+                FetchCommand();
+                RequestUpdate();
+            }
             if (renderCommand.DrawBackground && hideInIdle)
             {
                 Console.WriteLine("hide");
-
                 container.Hide();
+                isHidden = true;
             }
             else
             {
                 Console.WriteLine("show");
                 container.Show();
+                isHidden = false;
             }
 
             long count = renderCount;
@@ -90,7 +96,11 @@ namespace RenderClient
             while (glControl.IsIdle)
             {
 
-                while (!Setting.IsVSync && FpsStopwatch.ElapsedMilliseconds * Setting.FPS < 1000) ; // spin lock
+                if (!Setting.IsVSync) {
+                    SpinWait.SpinUntil(
+                        () =>  FpsStopwatch.ElapsedMilliseconds * Setting.FPS >= 1000
+                    );
+                }
                 glControl.Invalidate();
 
                 if (!Setting.IsVSync) FpsStopwatch.Restart();
@@ -109,6 +119,7 @@ namespace RenderClient
         }
 
         private byte[] buff = new byte[65536];
+        private byte[] responseBuff = new byte[4096];
 
         private void Render()
         {
@@ -127,7 +138,6 @@ namespace RenderClient
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             // notify server to render from now on
-            Console.WriteLine($"{preCommand.RequestUpdate}!!");
 
             if (targetCommand.RequestUpdate)
             {
@@ -138,14 +148,17 @@ namespace RenderClient
 
             if (!targetCommand.RequestUpdate)
             {
-                preCommand.Read(ref buff, 0);
-
                 RequestUpdate();
 
                 PlayerName = renderCommand.PlayerName;
                 //Console.WriteLine($"{PlayerName}");
 
                 RenderFrame();
+
+                if (targetCommand == renderCommand)
+                {
+                    preCommand.Read(ref buff, 0);
+                }
             }
 
             GL.Flush();
@@ -162,8 +175,8 @@ namespace RenderClient
         {
             RemoteRenderCommand dummyCommand = new RemoteRenderCommand();
             dummyCommand.RequestUpdate = true;
-            int length = dummyCommand.Write(ref buff, 0);
-            SerializeUtils.Save(RemoteID, ref buff, length);
+            int length = dummyCommand.Write(ref responseBuff, 0);
+            SerializeUtils.Save(RemoteID, ref responseBuff, length);
         }
 
         private void RenderFrame()

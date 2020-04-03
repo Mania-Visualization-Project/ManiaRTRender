@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using static ManiaRTRender.ManiaRTRenderPlugin;
 using Action = ManiaRTRender.Core.Action;
@@ -72,6 +73,8 @@ namespace ManiaRTRender.Render
                         remoteRenderCommand.LineEvents = LineEvents;
                         remoteRenderCommand.RequestUpdate = false;
                         sendCommand();
+
+                        Thread.Sleep(8);
                     }
                 } catch (Exception e)
                 {

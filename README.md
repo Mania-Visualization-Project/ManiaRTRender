@@ -25,6 +25,15 @@ ManiaRTRender是一个[OsuSync](https://github.com/Deliay/osuSync)的可视化�
 
 4. 打开Sync.exe。
 
+## 右键菜单
+右键渲染器将会弹出功能菜单，如下：
+
+![](Screenshots/menu.png)
+
+- Hide Window in Idle：选中后，将会在游戏未开始时隐藏整个窗口，在开始后重新显示。
+- Top Most：选中后，渲染器将会保持在屏幕最顶部。
+- Close：关闭渲染器窗口。注意：此操作不可逆，关闭后需要重启Sync.exe才能重新打开渲染器窗口。
+
 ## 配置方法
 
 ManiaRTRender支持修改下落速度、背景图片、渲染帧数以及UI元素尺寸。可以直接修改{OsuSync}/config.ini文件（位于`[ManiaRTRender.SettingIni]`配置项）。也可以使用ConfigGUI插件，用图形界面进行修改。

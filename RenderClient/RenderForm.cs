@@ -54,14 +54,15 @@ namespace RenderClient
 
         private void CalculateFPS(object sender, ElapsedEventArgs e)
         {
-            Console.WriteLine("calculate");
-            syncContext.Post(UpdateControlLabel, null);
+            if (fpsCallbackCount % 4 == 0)
+            {
+                syncContext.Post(UpdateControlLabel, null);
+            }
 
             fpsCallbackCount += 1;
             // search for sync.exe every 10 seconds
             if (fpsCallbackCount % 10 == 0)
             {
-                fpsCallbackCount = 0;
 
                 bool hasSync = false;
                 
@@ -81,7 +82,7 @@ namespace RenderClient
 
         private void UpdateControlLabel(object obj)
         {
-            controlLabel.Text = $"{renderClient.PlayerName} (FPS: {renderClient.GetRenderCountAndClear() * 4})";
+            controlLabel.Text = $"{renderClient.PlayerName} (FPS: {renderClient.GetRenderCountAndClear()})";
         }
 
         protected override void OnLoad(EventArgs e)
