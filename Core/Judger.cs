@@ -150,7 +150,10 @@ namespace ManiaRTRender.Core
                                     action.IsHolding = true;
                                     action.Duration = 30000000L; // mark a very long value
                                 }
-                                actions.Add(action);
+                                lock (actions)
+                                {
+                                    actions.Add(action);
+                                }
                             }
                             else
                             {

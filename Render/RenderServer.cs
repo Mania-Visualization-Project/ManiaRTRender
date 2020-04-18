@@ -85,10 +85,19 @@ namespace ManiaRTRender.Render
         }
 
         byte[] buff = new byte[65536];
+        string preStr = "";
         private void sendCommand()
         {
             int length = remoteRenderCommand.Write(ref buff, 0);
             SerializeUtils.Save(remoteId, ref buff, length);
+
+            string str = $"send => {remoteId}: {remoteRenderCommand.PlayerName}, {remoteRenderCommand.RectEvents.Count}";
+            if (str != preStr)
+            {
+                Logger.I(str);
+                preStr = str;
+            }
+
         }
 
         private void fetchCommand()
@@ -119,18 +128,21 @@ namespace ManiaRTRender.Render
 
             long time = game.GetPlayingTime();
             if (time <= -10000 || time >= 1000000000) return;
-            if (time < preTime)
+            lock (game.Actions)
             {
-                notesToRender.CopyFrom(game.Beatmap.Notes);
-                actionsToRender.CopyFrom(game.Actions);
-                preActionsSize = actionsToRender.Count;
+                if (time < preTime)
+                {
+                    notesToRender.CopyFrom(game.Beatmap.Notes);
+                    actionsToRender.CopyFrom(game.Actions);
+                    preActionsSize = actionsToRender.Count;
+                }
+                preTime = time;
+                if (preActionsSize < game.Actions.Count)
+                {
+                    actionsToRender.AddSome(game.Actions, preActionsSize);
+                }
+                preActionsSize = game.Actions.Count;
             }
-            preTime = time;
-            if (preActionsSize < game.Actions.Count)
-            {
-                actionsToRender.AddSome(game.Actions, preActionsSize);
-            }
-            preActionsSize = game.Actions.Count;
 
             List<HitEvent> rawEvents = game.RawEvents;
 

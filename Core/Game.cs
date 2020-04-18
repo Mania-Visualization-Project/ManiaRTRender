@@ -69,7 +69,10 @@ namespace ManiaRTRender.Core
             LastSystemTime = 0;
             
             rate = 1.0;
-            Actions.Clear();
+            lock (Actions)
+            {
+                Actions.Clear();
+            }
             if (Beatmap != null)
             {
                 Judger.init(Beatmap);
