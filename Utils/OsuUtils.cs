@@ -139,7 +139,6 @@ namespace ManiaRTRender.Utils
 
             if (!beatmap.IsMania)
             {
-                Logger.E("Currently ManiaRTRender only supports osu!mania mode!");
                 return null;
             }
 
