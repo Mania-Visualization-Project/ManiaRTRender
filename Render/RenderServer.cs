@@ -85,19 +85,10 @@ namespace ManiaRTRender.Render
         }
 
         byte[] buff = new byte[65536];
-        string preStr = "";
         private void sendCommand()
         {
             int length = remoteRenderCommand.Write(ref buff, 0);
             SerializeUtils.Save(remoteId, ref buff, length);
-
-            string str = $"send => {remoteId}: {remoteRenderCommand.PlayerName}, {remoteRenderCommand.RectEvents.Count}";
-            if (str != preStr)
-            {
-                Logger.I(str);
-                preStr = str;
-            }
-
         }
 
         private void fetchCommand()
@@ -223,20 +214,26 @@ namespace ManiaRTRender.Render
 
         private void FindRenderingNotes<T>(LinkedList<T> notes, long time, OnFind<T> onFind) where T: BaseNote
         {
-            LinkedListNode<T> node = notes.First;
-            while (node != null)
-            {
-                T t = node.Value;
-                long dt = time - t.TimeStamp;
-                if (dt < 0) break;
-                onFind(t);
-                
-                LinkedListNode<T> newNode = node.Next;
-                if (t.EndTime <= time - timeWindow)
+            lock (game.Actions) { 
+                LinkedListNode<T> node = notes.First;
+                while (node != null)
                 {
-                    notes.Remove(node);
+                    T t = node.Value;
+                    long dt = time - t.TimeStamp;
+                    if (dt < 0) break;
+
+
+                    LinkedListNode<T> newNode = node.Next;
+                    if (t.EndTime <= time - timeWindow)
+                    {
+                        notes.Remove(node);
+                    } 
+                    else
+                    {
+                        onFind(t);
+                    }
+                    node = newNode;
                 }
-                node = newNode;
             }
         }
 
