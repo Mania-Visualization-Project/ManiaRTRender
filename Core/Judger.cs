@@ -122,7 +122,13 @@ namespace ManiaRTRender.Core
             if (CurrentHolding.ContainsKey(column))
             {
                 CurrentHolding[column].IsHolding = false;
-                CurrentHolding[column].Duration = t - CurrentHolding[column].TimeStamp;
+                long duration = t - CurrentHolding[column].TimeStamp;
+                long maxDuration = CurrentHolding[column].Target.Duration + (long)JudgementWindow[(int)Judgement.MISS];
+                if (duration >= maxDuration)
+                {
+                    duration = maxDuration;
+                }
+                CurrentHolding[column].Duration = duration;
                 JudgeRelease(CurrentHolding[column]);
                 CurrentHolding.Remove(column);
             }
@@ -163,7 +169,7 @@ namespace ManiaRTRender.Core
                                         CurrentHolding[j] = action;
                                     }
                                     action.IsHolding = true;
-                                    action.Duration = action.Target.Duration + 500;
+                                    action.Duration = action.Target.Duration + (long)JudgementWindow[(int)Judgement.MISS];
                                 }
                                 lock (actions)
                                 {

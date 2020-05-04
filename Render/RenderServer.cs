@@ -28,6 +28,7 @@ namespace ManiaRTRender.Render
         private LinkedList<Action> actionsToRender = new LinkedList<Action>();
         private long preTime = long.MaxValue;
         private int preActionsSize = 0;
+        private bool forceSync = false;
 
         private int columnWidth = 0;
         private int timeWindow;
@@ -121,11 +122,12 @@ namespace ManiaRTRender.Render
             if (time <= -10000 || time >= 1000000000) return;
             lock (game.Actions)
             {
-                if (time < preTime)
+                if (time < preTime || forceSync)
                 {
                     notesToRender.CopyFrom(game.Beatmap.Notes);
                     actionsToRender.CopyFrom(game.Actions);
                     preActionsSize = actionsToRender.Count;
+                    forceSync = false;
                 }
                 preTime = time;
                 if (preActionsSize < game.Actions.Count)
@@ -150,6 +152,7 @@ namespace ManiaRTRender.Render
             });
 
             // 1. draw notes
+            bool hasHitNotes = false;
             FindRenderingNotes(notesToRender, time, (note) =>
             {
                 long dt = time - note.TimeStamp;
@@ -163,11 +166,13 @@ namespace ManiaRTRender.Render
                 else
                 {
                     color = OsuUtils.JUDGEMENT_COLORS[(int)note.Judgement];
+                    hasHitNotes |= note.Judgement != Judgement.MISS;
                 }
                 DrawNote(note.Column, y, (int)note.Duration, color, false, false);
             });
 
             // 2. draw action
+            bool hasActions = false;
             FindRenderingNotes(actionsToRender, time, (action) =>
             {
                 long dt = time - action.TimeStamp;
@@ -184,6 +189,8 @@ namespace ManiaRTRender.Render
                     }
                     DrawActionLN(action, time, OsuUtils.COLOR_LIGHT);
                 }
+
+                hasActions = true;
             });
 
             // 3. draw hold highlight
@@ -210,6 +217,8 @@ namespace ManiaRTRender.Render
             {
                 Logger.E(ex.StackTrace);
             }
+
+            forceSync = hasHitNotes && !hasActions;
         }
 
         private void FindRenderingNotes<T>(LinkedList<T> notes, long time, OnFind<T> onFind) where T: BaseNote
