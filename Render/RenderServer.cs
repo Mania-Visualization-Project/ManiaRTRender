@@ -223,21 +223,32 @@ namespace ManiaRTRender.Render
 
         private void FindRenderingNotes<T>(LinkedList<T> notes, long time, OnFind<T> onFind) where T: BaseNote
         {
-            lock (game.Actions) { 
+            lock (game.Actions) {
+                int extraTimeCount = 0;
                 LinkedListNode<T> node = notes.First;
                 while (node != null)
                 {
                     T t = node.Value;
                     long dt = time - t.TimeStamp;
-                    if (dt < 0) break;
-
+                    if (dt < 0)
+                    {
+                        extraTimeCount += 1;
+                        if (extraTimeCount >= 32)
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        extraTimeCount = 0;
+                    }
 
                     LinkedListNode<T> newNode = node.Next;
                     if (t.EndTime <= time - timeWindow)
                     {
                         notes.Remove(node);
                     } 
-                    else
+                    else if (dt >= 0)
                     {
                         onFind(t);
                     }
