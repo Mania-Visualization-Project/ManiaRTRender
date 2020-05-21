@@ -1,2 +1,6 @@
 bin
 obj
+.vs
+packages
+ManiaRTRender.sln
+ManiaRTRender.sln.DotSettings.user

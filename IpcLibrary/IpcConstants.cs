@@ -15,7 +15,6 @@ namespace IpcLibrary
         public static readonly string OBJECT_CONFIG_NAME = "config";
         private static readonly string OBJECT_RENDER_NAME = "render";
         //public static readonly string URL_CONFIG = GetUrl(OBJECT_CONFIG_NAME);
-
         public const int SIZE_RENDER = 65536;
         public const int SIZE_CONFIG = 65536;
 
