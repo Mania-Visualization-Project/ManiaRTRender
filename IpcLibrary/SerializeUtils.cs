@@ -19,11 +19,11 @@ namespace IpcLibrary
             //    buff = ms.GetBuffer();
             //}
             //return buff;
-            MemoryStream ms = new MemoryStream();
+            var ms = new MemoryStream();
             //创建序列化的实例
-            BinaryFormatter formatter = new BinaryFormatter();
+            var formatter = new BinaryFormatter();
             formatter.Serialize(ms, obj);//序列化对象，写入ms流中  
-            byte[] bytes = ms.GetBuffer();
+            var bytes = ms.GetBuffer();
             return bytes;
         }
 
@@ -39,11 +39,9 @@ namespace IpcLibrary
             //}
             //Console.WriteLine("byte 2 object 2");
             //return obj;
-            object obj = null;
-            MemoryStream ms = new MemoryStream(bytes);
-            ms.Position = 0;
-            BinaryFormatter formatter = new BinaryFormatter();
-            obj = formatter.Deserialize(ms);//把内存流反序列成对象  
+            var ms = new MemoryStream(bytes) {Position = 0};
+            var formatter = new BinaryFormatter();
+            var obj = formatter.Deserialize(ms);
             ms.Close();
             return obj;
         }
@@ -66,13 +64,13 @@ namespace IpcLibrary
             return value;
         }
 
-        private static List<ShareMem> MemDBList = new List<ShareMem>();
+        private static readonly List<ShareMem> MemDBList = new List<ShareMem>();
 
         public static int InitShareMemory(string name, int size)
         {
-            ShareMem MemDB = new ShareMem();
-            MemDB.Init($"ManiaRTRender_{name}", size);
-            MemDBList.Add(MemDB);
+            var memDb = new ShareMem();
+            memDb.Init($"ManiaRTRender_{name}", size);
+            MemDBList.Add(memDb);
             return MemDBList.Count - 1;
         }
 
@@ -80,8 +78,8 @@ namespace IpcLibrary
         {
             //Console.WriteLine($"save: {4} {id}");
 
-            byte[] sizeBytes = new byte[4];
-            SerializeUtils.Int2Bytes(length, ref sizeBytes, 0);
+            var sizeBytes = new byte[4];
+            Int2Bytes(length, ref sizeBytes, 0);
 
             MemDBList[id].Write(sizeBytes, 0, 4);
             //Console.WriteLine($"save: {length} {id}");
@@ -99,9 +97,9 @@ namespace IpcLibrary
 
         public static void Fetch(int id, ref byte[] buff)
         {
-            byte[] bytes = new byte[4];
+            var bytes = new byte[4];
             MemDBList[id].Read(ref bytes, 0, 4);
-            int size = SerializeUtils.Bytes2Int(ref bytes, 0);
+            var size = SerializeUtils.Bytes2Int(ref bytes, 0);
 
             //Console.WriteLine($"fetch: {4} {id} {size}");
 
@@ -149,9 +147,8 @@ namespace IpcLibrary
 
         public static int WriteString(ref string str, ref byte[] buff, int start)
         {
-            string targetString = str;
-            if (targetString == null) targetString = "";
-            byte[] content = System.Text.Encoding.Default.GetBytes(targetString);
+            var targetString = str ?? "";
+            var content = System.Text.Encoding.Default.GetBytes(targetString);
             start = WriteInt(content.Length, ref buff, start);
             Array.Copy(content, 0, buff, start, content.Length);
             return start + content.Length;
@@ -159,9 +156,8 @@ namespace IpcLibrary
 
         public static int ReadString(out string str, ref byte[] buff, int start)
         {
-            int length;
-            start = ReadInt(out length, ref buff, start);
-            byte[] content = new byte[length];
+            start = ReadInt(out var length, ref buff, start);
+            var content = new byte[length];
             Array.Copy(buff, start, content, 0, length);
             str = System.Text.Encoding.Default.GetString(content);
             return start + length;
@@ -169,8 +165,7 @@ namespace IpcLibrary
 
         public static int ReadBool(out bool value, ref byte[] buff, int start)
         {
-            int data;
-            start = ReadInt(out data, ref buff, start);
+            start = ReadInt(out var data, ref buff, start);
             value = data != 0;
             return start;
         }

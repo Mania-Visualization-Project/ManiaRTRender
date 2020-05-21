@@ -31,11 +31,36 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BanManager">
+      <HintPath>Plugins\BanManager.dll</HintPath>
+    </Reference>
+    <Reference Include="BeatmapSuggest">
+      <HintPath>Plugins\BeatmapSuggest.dll</HintPath>
+    </Reference>
+    <Reference Include="DefaultPlugin">
+      <HintPath>Plugins\DefaultPlugin.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Plugins\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NowPlaying">
+      <HintPath>Plugins\NowPlaying.dll</HintPath>
+    </Reference>
     <Reference Include="OpenTK, Version=3.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenTK.3.1.0\lib\net20\OpenTK.dll</HintPath>
+      <HintPath>Plugins\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK.GLControl, Version=3.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenTK.GLControl.3.1.0\lib\net20\OpenTK.GLControl.dll</HintPath>
+      <HintPath>Plugins\OpenTK.GLControl.dll</HintPath>
+    </Reference>
+    <Reference Include="OsuRTDataProvider">
+      <HintPath>Plugins\OsuRTDataProvider.dll</HintPath>
+    </Reference>
+    <Reference Include="PPQuery">
+      <HintPath>Plugins\PPQuery.dll</HintPath>
+    </Reference>
+    <Reference Include="RecentlyUserQuery">
+      <HintPath>Plugins\RecentlyUserQuery.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -74,11 +99,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\OsuRTDataProvider\OsuRTDataProvider.csproj">
-      <Project>{d518dc59-cc9a-4886-839f-7691d5efae56}</Project>
-      <Name>OsuRTDataProvider</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Sync\Sync.csproj">
+    <ProjectReference Include="..\..\..\Sync-master\Sync\Sync.csproj">
       <Project>{fbd514c2-2830-479e-b050-d1c383028456}</Project>
       <Name>Sync</Name>
     </ProjectReference>
@@ -86,8 +107,13 @@
       <Project>{bd2e1381-62f7-4938-adf8-e2e4b353a736}</Project>
       <Name>IpcLibrary</Name>
     </ProjectReference>
+    <ProjectReference Include="RenderClient\RenderClient.csproj">
+      <Project>{1ba97a38-a3b3-4292-82fb-629aeae95c9d}</Project>
+      <Name>RenderClient</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -96,6 +122,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

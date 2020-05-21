@@ -34,10 +34,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="OpenTK, Version=3.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\OpenTK.3.1.0\lib\net20\OpenTK.dll</HintPath>
+      <HintPath>..\Plugins\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK.GLControl, Version=3.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\OpenTK.GLControl.3.1.0\lib\net20\OpenTK.GLControl.dll</HintPath>
+      <HintPath>..\Plugins\OpenTK.GLControl.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -93,6 +93,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Sync-master\Sync\Sync.csproj">
+      <Project>{fbd514c2-2830-479e-b050-d1c383028456}</Project>
+      <Name>Sync</Name>
+    </ProjectReference>
     <ProjectReference Include="..\IpcLibrary\IpcLibrary.csproj">
       <Project>{bd2e1381-62f7-4938-adf8-e2e4b353a736}</Project>
       <Name>IpcLibrary</Name>

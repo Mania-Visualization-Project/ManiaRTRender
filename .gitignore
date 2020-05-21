@@ -4,3 +4,8 @@ obj
 packages
 ManiaRTRender.sln
 ManiaRTRender.sln.DotSettings.user
+*.config
+*.csproj
+*.csproj
+RenderClient/RenderClient.csproj
+RenderClient/RenderClient.csproj

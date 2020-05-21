@@ -64,23 +64,23 @@ namespace RenderClient
         }
 
 
-        private static readonly string DEFAULT_PATH = "This is an impossible image path hhhhhhhh";
+        private const string DEFAULT_PATH = "This is an impossible image path hhhhhhhh";
 
         public class ImageContext
         {
-            internal int CurrentHandler = 0;
+            internal int CurrentHandler;
             internal string CurrentImagePath = DEFAULT_PATH;
-            internal bool HasLoadedImage = false;
+            internal bool HasLoadedImage;
         }
 
-        private static void LoadImage(string image_path, ImageContext imageContext)
+        private static void LoadImage(string imagePath, ImageContext imageContext)
         {
             Bitmap bitmap;
-            imageContext.CurrentImagePath = image_path;
+            imageContext.CurrentImagePath = imagePath;
 
             try
             {
-                bitmap = image_path.Trim() == string.Empty ? Properties.Resources.DefaultBackground : new Bitmap(image_path);
+                bitmap = imagePath.Trim() == string.Empty ? Properties.Resources.DefaultBackground : new Bitmap(imagePath);
             } catch (Exception e)
             {
                 //Logger.E($"Fail to load image from {image_path}: {e.Message}");
@@ -91,7 +91,7 @@ namespace RenderClient
             GL.GenTextures(1, out imageContext.CurrentHandler);
             GL.BindTexture(TextureTarget.Texture2D, imageContext.CurrentHandler);
 
-            BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
+            var data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height),
                 ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
                 OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
@@ -105,11 +105,11 @@ namespace RenderClient
             imageContext.HasLoadedImage = true;
         }
 
-        public static void DrawImage(string image_path, ImageContext imageContext)
+        public static void DrawImage(string imagePath, ImageContext imageContext)
         {
-            if (image_path != imageContext.CurrentImagePath)
+            if (imagePath != imageContext.CurrentImagePath)
             {
-                LoadImage(image_path, imageContext);
+                LoadImage(imagePath, imageContext);
             }
 
             if (!imageContext.HasLoadedImage) return;
