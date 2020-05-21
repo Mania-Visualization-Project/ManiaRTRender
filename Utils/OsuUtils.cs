@@ -60,16 +60,16 @@ namespace ManiaRTRender.Utils
         }
 
         // a naive parser
-        public static ManiaBeatmap ReadBeatmap(string beatmap_file, ModsInfo modsInfo)
+        public static ManiaBeatmap ReadBeatmap(string beatmapFile, ModsInfo modsInfo)
         {
-            bool is_hit_object = false;
+            bool isHitObject = false;
             ManiaBeatmap beatmap = new ManiaBeatmap();
             double od = double.NaN;
             List<Note> notes = new List<Note>();
 
             Exception expInParsing = null;
 
-            using (var fs = File.OpenRead(beatmap_file))
+            using (var fs = File.OpenRead(beatmapFile))
             using (StreamReader reader = new StreamReader(fs))
             {
 
@@ -103,7 +103,7 @@ namespace ManiaRTRender.Utils
                     }
                     else if (line.StartsWith("["))
                     {
-                        is_hit_object = line == "[HitObjects]";
+                        isHitObject = line == "[HitObjects]";
                         continue;
                     }
                     else if (line.StartsWith("Mode"))
@@ -111,7 +111,7 @@ namespace ManiaRTRender.Utils
                         beatmap.IsMania = 3 == int.Parse(line.Split(':').Last());
                     }
 
-                    if (is_hit_object && line != string.Empty)
+                    if (isHitObject && line != string.Empty)
                     {
                         try
                         {
@@ -119,8 +119,8 @@ namespace ManiaRTRender.Utils
                             string[] elements = line.Split(',');
                             note.Column = (int)Math.Floor(int.Parse(elements[0]) * beatmap.Key / 512.0);
                             note.TimeStamp = long.Parse(elements[2]);
-                            long end_time = long.Parse(elements[5].Split(':')[0]);
-                            note.Duration = (int.Parse(elements[3]) & 128) != 0 ? end_time - note.TimeStamp : 0L;
+                            long endTime = long.Parse(elements[5].Split(':')[0]);
+                            note.Duration = (int.Parse(elements[3]) & 128) != 0 ? endTime - note.TimeStamp : 0L;
                             notes.Add(note);
                         }
                         catch (Exception e)
@@ -168,13 +168,13 @@ namespace ManiaRTRender.Utils
             return beatmap;
         }
 
-        public static double GetSpeedRatio(ModsInfo mods_info)
+        public static double GetSpeedRatio(ModsInfo modsInfo)
         {
-            if (mods_info.HasMod(ModsInfo.Mods.DoubleTime))
+            if (modsInfo.HasMod(ModsInfo.Mods.DoubleTime))
             {
                 return 1.5;
             }
-            else if (mods_info.HasMod(ModsInfo.Mods.HalfTime))
+            else if (modsInfo.HasMod(ModsInfo.Mods.HalfTime))
             {
                 return 0.75;
             }

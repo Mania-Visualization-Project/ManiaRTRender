@@ -9,27 +9,27 @@ namespace ManiaRTRender.Core
     public class Judger
     {
 
-        LinkedList<Note> NotesToJudge = new LinkedList<Note>();
-        private int ActionIndex = 0;
-        private int Key;
-        double[] JudgementWindow;
-        private Dictionary<int, Action> CurrentHolding = new Dictionary<int, Action>();
+        private LinkedList<Note> notesToJudge = new LinkedList<Note>();
+        private int _actionIndex = 0;
+        private int _key;
+        private double[] _judgementWindow;
+        private Dictionary<int, Action> _currentHolding = new Dictionary<int, Action>();
 
 
-        public void init(ManiaBeatmap beatmap)
+        public void Init(ManiaBeatmap beatmap)
         {
-            NotesToJudge.CopyFrom(beatmap.Notes);
-            JudgementWindow = beatmap.JudgementWindow;
-            Key = beatmap.Key;
-            ActionIndex = 0;
-            CurrentHolding.Clear();
+            notesToJudge.CopyFrom(beatmap.Notes);
+            _judgementWindow = beatmap.JudgementWindow;
+            _key = beatmap.Key;
+            _actionIndex = 0;
+            _currentHolding.Clear();
         }
 
         private Judgement GetJudgement(double diff)
         {
-            for (int i = 0; i < JudgementWindow.Length; i++)
+            for (var i = 0; i < _judgementWindow.Length; i++)
             {
-                if (diff <= JudgementWindow[i])
+                if (diff <= _judgementWindow[i])
                 {
                     return (Judgement)i;
                 }
@@ -39,35 +39,35 @@ namespace ManiaRTRender.Core
 
         private Note FindTarget(Action action)
         {
-            LinkedListNode<Note> list_node = NotesToJudge.First;
-            LinkedListNode<Note> candidate_node = null;
-            long candidate_diff = 0;
-            while (list_node != null)
+            LinkedListNode<Note> listNode = notesToJudge.First;
+            LinkedListNode<Note> candidateNode = null;
+            long candidateDiff = 0;
+            while (listNode != null)
             {
-                Note note = list_node.Value;
+                Note note = listNode.Value;
                 if (note.Column == action.Column)
                 {
                     long diff = action.TimeStamp - note.TimeStamp;
-                    bool tooEarly = -diff > JudgementWindow[(int)Judgement.MISS]; // exclude early misses
-                    bool tooLate = diff > JudgementWindow[(int)Judgement.J_50];
+                    bool tooEarly = -diff > _judgementWindow[(int)Judgement.MISS]; // exclude early misses
+                    bool tooLate = diff > _judgementWindow[(int)Judgement.J_50];
                     if (tooEarly) break;
                     bool hit = !tooEarly && !tooLate;
                     if (hit)
                     {
-                        if (candidate_node == null || (diff > 0 && candidate_diff > 0))
+                        if (candidateNode == null || (diff > 0 && candidateDiff > 0))
                         {
-                            candidate_node = list_node;
-                            candidate_diff = diff;
+                            candidateNode = listNode;
+                            candidateDiff = diff;
                         }
                     }
                 }
-                list_node = list_node.Next;
+                listNode = listNode.Next;
             }
 
-            if (candidate_node != null)
+            if (candidateNode != null)
             {
-                Note note = candidate_node.Value;
-                NotesToJudge.Remove(candidate_node);
+                Note note = candidateNode.Value;
+                notesToJudge.Remove(candidateNode);
                 return note;
             }
 
@@ -97,40 +97,40 @@ namespace ManiaRTRender.Core
                 Logger.E("Action.Target == null!!!");
                 return;
             }
-            long end_diff = Math.Abs(action.EndTime - action.Target.EndTime);
-            end_diff = (long)(end_diff / 1.5); // LN lenience
-            action.JudgementEnd = GetJudgement(end_diff);
+            long endDiff = Math.Abs(action.EndTime - action.Target.EndTime);
+            endDiff = (long)(endDiff / 1.5); // LN lenience
+            action.JudgementEnd = GetJudgement(endDiff);
 
             // adjust target's judgement
-            long start_diff = Math.Abs(action.TimeStamp - action.Target.TimeStamp);
-            long diff = (end_diff + start_diff) / 2;
+            long startDiff = Math.Abs(action.TimeStamp - action.Target.TimeStamp);
+            long diff = (endDiff + startDiff) / 2;
             Judgement judgement = GetJudgement(diff);
             if (judgement == Judgement.MISS)
             {
-                judgement = end_diff > 0 ? Judgement.J_100 : Judgement.J_50;
+                judgement = endDiff > 0 ? Judgement.J_100 : Judgement.J_50;
             }
             action.Target.Judgement = judgement;
         }
 
         public bool ShouldReset(List<HitEvent> rawEvents)
         {
-            return ActionIndex > rawEvents.Count;
+            return _actionIndex > rawEvents.Count;
         }
 
         private void ProcessLNRelease(int column, long t)
         {
-            if (CurrentHolding.ContainsKey(column))
+            if (_currentHolding.ContainsKey(column))
             {
-                CurrentHolding[column].IsHolding = false;
-                long duration = t - CurrentHolding[column].TimeStamp;
-                long maxDuration = CurrentHolding[column].Target.Duration + (long)JudgementWindow[(int)Judgement.MISS];
+                _currentHolding[column].IsHolding = false;
+                long duration = t - _currentHolding[column].TimeStamp;
+                long maxDuration = _currentHolding[column].Target.Duration + (long)_judgementWindow[(int)Judgement.MISS];
                 if (duration >= maxDuration)
                 {
                     duration = maxDuration;
                 }
-                CurrentHolding[column].Duration = duration;
-                JudgeRelease(CurrentHolding[column]);
-                CurrentHolding.Remove(column);
+                _currentHolding[column].Duration = duration;
+                JudgeRelease(_currentHolding[column]);
+                _currentHolding.Remove(column);
             }
         }
 
@@ -139,20 +139,20 @@ namespace ManiaRTRender.Core
             lock (actions)
             {
                 int count = rawEvents.Count;
-                int last_hold = ActionIndex == 0 ? 0 : (int)rawEvents[ActionIndex - 1].X;
-                for (int i = ActionIndex; i < count; i++)
+                int lastHold = _actionIndex == 0 ? 0 : (int)rawEvents[_actionIndex - 1].X;
+                for (int i = _actionIndex; i < count; i++)
                 {
                     int x = (int)rawEvents[i].X;
                     long t = rawEvents[i].TimeStamp;
 
-                    for (int j = 0; j < Key; j++)
+                    for (int j = 0; j < _key; j++)
                     {
-                        bool is_holding = (x & 1) != 0;
-                        bool last_is_holding = (last_hold & 1) != 0;
+                        bool isHolding = (x & 1) != 0;
+                        bool lastIsHolding = (lastHold & 1) != 0;
 
-                        if (is_holding)
+                        if (isHolding)
                         {
-                            if (!last_is_holding)
+                            if (!lastIsHolding)
                             {
                                 // release -> hold: create new action
                                 Action action = new Action
@@ -160,16 +160,16 @@ namespace ManiaRTRender.Core
                                     Column = j,
                                     TimeStamp = t
                                 };
-                                bool is_ln = JudgeHold(action);
-                                if (is_ln)
+                                bool isLn = JudgeHold(action);
+                                if (isLn)
                                 {
-                                    lock (CurrentHolding)
+                                    lock (_currentHolding)
                                     {
                                         ProcessLNRelease(j, t);
-                                        CurrentHolding[j] = action;
+                                        _currentHolding[j] = action;
                                     }
                                     action.IsHolding = true;
-                                    action.Duration = action.Target.Duration + (long)JudgementWindow[(int)Judgement.MISS];
+                                    action.Duration = action.Target.Duration + (long)_judgementWindow[(int)Judgement.MISS];
                                 }
                                 lock (actions)
                                 {
@@ -183,10 +183,10 @@ namespace ManiaRTRender.Core
                         }
                         else
                         {
-                            if (last_is_holding)
+                            if (lastIsHolding)
                             {
                                 // hold -> release: process only if it holds a LN
-                                lock (CurrentHolding)
+                                lock (_currentHolding)
                                 {
                                     ProcessLNRelease(j, t);
                                 }
@@ -194,13 +194,13 @@ namespace ManiaRTRender.Core
                         }
 
                         x /= 2;
-                        last_hold /= 2;
+                        lastHold /= 2;
                     }
 
-                    last_hold = (int)rawEvents[i].X;
+                    lastHold = (int)rawEvents[i].X;
                 }
 
-                ActionIndex = count;
+                _actionIndex = count;
             }
             
 
