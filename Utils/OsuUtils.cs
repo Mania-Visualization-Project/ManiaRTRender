@@ -111,7 +111,7 @@ namespace ManiaRTRender.Utils
                         beatmap.IsMania = 3 == int.Parse(line.Split(':').Last());
                     }
 
-                    if (isHitObject && line != string.Empty)
+                    if (!isHitObject || line == string.Empty) continue;
                     {
                         try
                         {

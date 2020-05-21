@@ -63,12 +63,11 @@ namespace ManiaRTRender.Core
                 _game.Stop();
                 return;
             }
-            if (_mModsInfo != ModsInfo.Empty && _mBeatMap != string.Empty)
+
+            if (_mModsInfo == ModsInfo.Empty || _mBeatMap == string.Empty) return;
+            if (_game.Start(_mBeatMap, _mModsInfo))
             {
-                if (_game.Start(_mBeatMap, _mModsInfo))
-                {
-                    _game.SetHitEvents(_mPlayType, _mHitEvents);
-                }
+                _game.SetHitEvents(_mPlayType, _mHitEvents);
             }
         }
     }

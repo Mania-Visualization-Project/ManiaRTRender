@@ -88,14 +88,7 @@ namespace IpcLibrary
                 }
                 else
                 {
-                    if (GetLastError() == ERROR_ALREADY_EXISTS)  //已经创建
-                    {
-                        m_bAlreadyExist = true;
-                    }
-                    else                                         //新创建
-                    {
-                        m_bAlreadyExist = false;
-                    }
+                    m_bAlreadyExist = GetLastError() == ERROR_ALREADY_EXISTS;
                 }
                 //---------------------------------------
                 //创建内存映射
@@ -129,11 +122,9 @@ namespace IpcLibrary
         /// </summary>
         public void Close()
         {
-            if (m_bInit)
-            {
-                UnmapViewOfFile(m_pwData);
-                CloseHandle(m_hSharedMemoryFile);
-            }
+            if (!m_bInit) return;
+            UnmapViewOfFile(m_pwData);
+            CloseHandle(m_hSharedMemoryFile);
         }
 
         /// <summary>

@@ -182,7 +182,8 @@ namespace IpcLibrary
                 start = SerializeUtils.WriteBool(DrawBackground, ref buff, start);
                 start = SerializeUtils.WriteString(ref PlayerName, ref buff, start);
                 start = SerializeUtils.WriteBool(RequestUpdate, ref buff, start);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Console.WriteLine($"Error: {start} - {buff.Length} - {LineEvents.Count} - {RectEvents.Count}");
                 Console.WriteLine(e.StackTrace);

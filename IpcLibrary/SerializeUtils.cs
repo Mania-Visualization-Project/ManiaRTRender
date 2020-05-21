@@ -148,8 +148,7 @@ namespace IpcLibrary
 
         public static int WriteString(ref string str, ref byte[] buff, int start)
         {
-            var targetString = str;
-            if (targetString == null) targetString = "";
+            var targetString = str ?? "";
             var content = System.Text.Encoding.Default.GetBytes(targetString);
             start = WriteInt(content.Length, ref buff, start);
             Array.Copy(content, 0, buff, start, content.Length);

@@ -77,7 +77,8 @@ namespace ManiaRTRender.Render
 
                         Thread.Sleep(8);
                     }
-                } catch (Exception e)
+                } 
+                catch (Exception e)
                 {
                     Logger.E(e.StackTrace);
                 }
@@ -202,18 +203,16 @@ namespace ManiaRTRender.Render
                     for (int j = index; j >= 0 && time - rawEvents[j].TimeStamp <= HOLD_LOOSE; j--)
                     {
                         int hold = (int)rawEvents[j].X;
-
-                        if ((hold & (1 << i)) != 0)
-                        {
-                            int color = (int)(255.0 * Math.Pow(HOLD_LOOSE_ALPHA, time - rawEvents[j].TimeStamp));
-                            if (j == index) color = 255;
-                            color = Math.Min(Math.Max(0, color), 255);
-                            DrawNote(i, Setting.NoteHeight, 0, Color.FromArgb(color, color, color), false, true);
-                            break;
-                        }
+                        if ((hold & (1 << i)) == 0) continue;
+                        int color = (int)(255.0 * Math.Pow(HOLD_LOOSE_ALPHA, time - rawEvents[j].TimeStamp));
+                        if (j == index) color = 255;
+                        color = Math.Min(Math.Max(0, color), 255);
+                        DrawNote(i, Setting.NoteHeight, 0, Color.FromArgb(color, color, color), false, true);
+                        break;
                     }
                 }
-            } catch (Exception ex)
+            } 
+            catch (Exception ex)
             {
                 Logger.E(ex.StackTrace);
             }
@@ -259,7 +258,7 @@ namespace ManiaRTRender.Render
 
         private int TimeToHeight(long t)
         {
-            return (int)(((double)(t)) / _timeWindow * IpcConstants.GAME_HEIGHT);
+            return (int)((double)t / _timeWindow * IpcConstants.GAME_HEIGHT);
         }
 
         private void DrawNote(int index, int y, int duration, Color color, bool isAction, bool shouldFill)

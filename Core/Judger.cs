@@ -9,7 +9,7 @@ namespace ManiaRTRender.Core
     public class Judger
     {
 
-        private LinkedList<Note> notesToJudge = new LinkedList<Note>();
+        private LinkedList<Note> _notesToJudge = new LinkedList<Note>();
         private int _actionIndex = 0;
         private int _key;
         private double[] _judgementWindow;
@@ -18,7 +18,7 @@ namespace ManiaRTRender.Core
 
         public void Init(ManiaBeatmap beatmap)
         {
-            notesToJudge.CopyFrom(beatmap.Notes);
+            _notesToJudge.CopyFrom(beatmap.Notes);
             _judgementWindow = beatmap.JudgementWindow;
             _key = beatmap.Key;
             _actionIndex = 0;
@@ -39,7 +39,7 @@ namespace ManiaRTRender.Core
 
         private Note FindTarget(Action action)
         {
-            LinkedListNode<Note> listNode = notesToJudge.First;
+            LinkedListNode<Note> listNode = _notesToJudge.First;
             LinkedListNode<Note> candidateNode = null;
             long candidateDiff = 0;
             while (listNode != null)
@@ -51,7 +51,7 @@ namespace ManiaRTRender.Core
                     bool tooEarly = -diff > _judgementWindow[(int)Judgement.MISS]; // exclude early misses
                     bool tooLate = diff > _judgementWindow[(int)Judgement.J_50];
                     if (tooEarly) break;
-                    bool hit = !tooEarly && !tooLate;
+                    bool hit = !tooLate;
                     if (hit)
                     {
                         if (candidateNode == null || (diff > 0 && candidateDiff > 0))
@@ -67,7 +67,7 @@ namespace ManiaRTRender.Core
             if (candidateNode != null)
             {
                 Note note = candidateNode.Value;
-                notesToJudge.Remove(candidateNode);
+                _notesToJudge.Remove(candidateNode);
                 return note;
             }
 
@@ -119,19 +119,17 @@ namespace ManiaRTRender.Core
 
         private void ProcessLNRelease(int column, long t)
         {
-            if (_currentHolding.ContainsKey(column))
+            if (!_currentHolding.ContainsKey(column)) return;
+            _currentHolding[column].IsHolding = false;
+            long duration = t - _currentHolding[column].TimeStamp;
+            long maxDuration = _currentHolding[column].Target.Duration + (long)_judgementWindow[(int)Judgement.MISS];
+            if (duration >= maxDuration)
             {
-                _currentHolding[column].IsHolding = false;
-                long duration = t - _currentHolding[column].TimeStamp;
-                long maxDuration = _currentHolding[column].Target.Duration + (long)_judgementWindow[(int)Judgement.MISS];
-                if (duration >= maxDuration)
-                {
-                    duration = maxDuration;
-                }
-                _currentHolding[column].Duration = duration;
-                JudgeRelease(_currentHolding[column]);
-                _currentHolding.Remove(column);
+                duration = maxDuration;
             }
+            _currentHolding[column].Duration = duration;
+            JudgeRelease(_currentHolding[column]);
+            _currentHolding.Remove(column);
         }
 
         public void TryToJudge(List<HitEvent> rawEvents, List<Action> actions)

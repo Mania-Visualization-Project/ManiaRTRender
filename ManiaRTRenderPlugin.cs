@@ -50,28 +50,24 @@ namespace ManiaRTRender
 
             foreach (var plugin in host.EnumPluings())
             {
-                if (plugin.Name == "OsuRTDataProvider")
+                if (plugin.Name != "OsuRTDataProvider") continue;
+                OsuRTDataProvider.OsuRTDataProviderPlugin reader = plugin as OsuRTDataProvider.OsuRTDataProviderPlugin;
+
+                // fetch ListenInterval from ORTDP ini because there is no API.
+                new PluginConfigurationManager(reader).AddItem(new ORTDPSetting.SettingIni());
+
+                if (reader != null && reader.TourneyListenerManagersCount == 0)
                 {
-                    OsuRTDataProvider.OsuRTDataProviderPlugin reader = plugin as OsuRTDataProvider.OsuRTDataProviderPlugin;
-
-                    // fetch ListenInterval from ORTDP ini because there is no API.
-                    new PluginConfigurationManager(reader).AddItem(new ORTDPSetting.SettingIni());
-
-                    if (reader != null && reader.TourneyListenerManagersCount == 0)
+                    _gameControllers.Add(new GameController(-1, reader));
+                    //GameControllers.Add(new GameController(1, reader));
+                }
+                else
+                {
+                    if (reader == null) continue;
+                    for (int i = 0; i < reader.TourneyListenerManagersCount; i++)
                     {
-                        _gameControllers.Add(new GameController(-1, reader));
-                        //GameControllers.Add(new GameController(1, reader));
+                        _gameControllers.Add(new GameController(i, reader));
                     }
-                    else
-                    {
-                        if (reader != null)
-                            for (int i = 0; i < reader.TourneyListenerManagersCount; i++)
-                            {
-                                _gameControllers.Add(new GameController(i, reader));
-                            }
-                    }
-
-                   
                 }
             }
         }

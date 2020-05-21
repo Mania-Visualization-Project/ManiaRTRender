@@ -31,20 +31,17 @@ namespace RenderClient
             RemoteConfig remoteConfig = new RemoteConfig();
             remoteConfig.Read(ref _buff, 0);
 
-            if (remoteConfig.Loaded)
-            {
-                Speed = remoteConfig.Speed;
-                FPS = remoteConfig.FPS;
-                NoteHeight = remoteConfig.NoteHeight;
-                HitHeight = remoteConfig.HitHeight;
-                NoteStrokeWidth = remoteConfig.NoteStrokeWidth;
-                BackgroundPicture = remoteConfig.BackgroundPicture;
-                BackgroundPictureInPlaying = remoteConfig.BackgroundPictureInPlaying;
-                _hasInit = true;
-                return true;
-            }
+            if (!remoteConfig.Loaded) return false;
+            Speed = remoteConfig.Speed;
+            FPS = remoteConfig.FPS;
+            NoteHeight = remoteConfig.NoteHeight;
+            HitHeight = remoteConfig.HitHeight;
+            NoteStrokeWidth = remoteConfig.NoteStrokeWidth;
+            BackgroundPicture = remoteConfig.BackgroundPicture;
+            BackgroundPictureInPlaying = remoteConfig.BackgroundPictureInPlaying;
+            _hasInit = true;
+            return true;
 
-            return false;
         }
     }
 }
