@@ -11,42 +11,42 @@ namespace ManiaRTRender.Core
 {
     class GameController
     {
-        private Game game;
-        private RenderServer renderServer;
+        private readonly Game _game;
+        private readonly RenderServer renderServer;
 
-        private PlayType mPlayType = PlayType.Unknown;
-        private string mBeatMap = string.Empty;
-        private ModsInfo mModsInfo = ModsInfo.Empty;
-        private List<HitEvent> mHitEvents = new List<HitEvent>();
+        private PlayType _mPlayType = PlayType.Unknown;
+        private string _mBeatMap = string.Empty;
+        private ModsInfo _mModsInfo = ModsInfo.Empty;
+        private List<HitEvent> _mHitEvents = new List<HitEvent>();
 
         public GameController(int id, OsuRTDataProvider.OsuRTDataProviderPlugin reader)
         {
-            OsuListenerManager manager = id < 0 ? reader.ListenerManager : reader.TourneyListenerManagers[id];
+            var manager = id < 0 ? reader.ListenerManager : reader.TourneyListenerManagers[id];
             if (id < 0) id = 0;
-            game = new Game();
-            renderServer = new RenderServer(game, id);
+            _game = new Game();
+            renderServer = new RenderServer(_game, id);
 
             manager.OnHitEventsChanged += (playType, hitEvents) =>
             {
-                mPlayType = playType;
-                mHitEvents = hitEvents;
+                _mPlayType = playType;
+                _mHitEvents = hitEvents;
                 Process();
             };
 
             manager.OnPlayingTimeChanged += (ms) =>
             {
-                game.SynchronizeTime(ms);
+                _game.SynchronizeTime(ms);
             };
 
             manager.OnModsChanged += (mods) =>
             {
-                mModsInfo = mods;
+                _mModsInfo = mods;
                 Process();
             };
 
             manager.OnBeatmapChanged += (beatmap) =>
             {
-                mBeatMap = beatmap.FilenameFull;
+                _mBeatMap = beatmap.FilenameFull;
                 Process();
             };
 
@@ -58,16 +58,16 @@ namespace ManiaRTRender.Core
 
         private void Process()
         {
-            if (mPlayType == PlayType.Unknown)
+            if (_mPlayType == PlayType.Unknown)
             {
-                game.Stop();
+                _game.Stop();
                 return;
             }
-            if (mModsInfo != ModsInfo.Empty && mBeatMap != string.Empty)
+            if (_mModsInfo != ModsInfo.Empty && _mBeatMap != string.Empty)
             {
-                if (game.Start(mBeatMap, mModsInfo))
+                if (_game.Start(_mBeatMap, _mModsInfo))
                 {
-                    game.SetHitEvents(mPlayType, mHitEvents);
+                    _game.SetHitEvents(_mPlayType, _mHitEvents);
                 }
             }
         }

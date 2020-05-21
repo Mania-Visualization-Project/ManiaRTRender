@@ -5,12 +5,12 @@ namespace ManiaRTRender.Core
 {
     public enum Judgement
     {
-        MAX = 0,
-        J_300 = 1,
-        J_200 = 2,
-        J_100 = 3,
-        J_50 = 4,
-        MISS = 5
+        Max = 0,
+        J300 = 1,
+        J200 = 2,
+        J100 = 3,
+        J50 = 4,
+        Miss = 5
     }
 
     public class BaseNote : IComparable<BaseNote>
@@ -35,13 +35,13 @@ namespace ManiaRTRender.Core
 
     public class Note : BaseNote
     {
-        public Judgement Judgement = Judgement.MISS;
+        public Judgement Judgement = Judgement.Miss;
     }
 
     public class Action : BaseNote
     {
-        public Judgement JudgementStart = Judgement.MISS;
-        public Judgement JudgementEnd = Judgement.MISS;
+        public Judgement JudgementStart = Judgement.Miss;
+        public Judgement JudgementEnd = Judgement.Miss;
         public Note Target;
         public bool IsHolding = false;
     }

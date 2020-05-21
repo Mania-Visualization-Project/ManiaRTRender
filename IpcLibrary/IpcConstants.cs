@@ -8,12 +8,12 @@ namespace IpcLibrary
 {
     public static class IpcConstants
     {
-        public static readonly int GAME_WIDTH = 540;
-        public static readonly int GAME_HEIGHT = 960;
+        public const int GAME_WIDTH = 540;
+        public const int GAME_HEIGHT = 960;
 
         //public static readonly string CHANNEL = "ManiaRTRender";
-        public static readonly string OBJECT_CONFIG_NAME = "config";
-        private static readonly string OBJECT_RENDER_NAME = "render";
+        public const string OBJECT_CONFIG_NAME = "config";
+        private const string OBJECT_RENDER_NAME = "render";
         //public static readonly string URL_CONFIG = GetUrl(OBJECT_CONFIG_NAME);
 
         public const int SIZE_RENDER = 65536;

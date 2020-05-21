@@ -19,8 +19,8 @@ namespace IpcLibrary
         public int NoteHeight = 0;
         public int HitHeight = 0;
         public int NoteStrokeWidth = 0;
-        public String BackgroundPicture = "";
-        public String BackgroundPictureInPlaying = "";
+        public string BackgroundPicture = "";
+        public string BackgroundPictureInPlaying = "";
         public int ORTDPListenInterval = 0;
 
         public bool Loaded = false;
@@ -58,64 +58,64 @@ namespace IpcLibrary
 
     public class LineEvent : Serializable
     {
-        public int x1;
-        public int y1;
-        public int x2;
-        public int y2;
-        public int width;
-        public Color color;
-        public bool stipple;
+        public int X1;
+        public int Y1;
+        public int X2;
+        public int Y2;
+        public int Width;
+        public Color Color;
+        public bool Stipple;
 
         public override int Read(ref byte[] buff, int start)
         {
-            start = SerializeUtils.ReadInt(out x1, ref buff, start);
-            start = SerializeUtils.ReadInt(out y1, ref buff, start);
-            start = SerializeUtils.ReadInt(out x2, ref buff, start);
-            start = SerializeUtils.ReadInt(out y2, ref buff, start);
-            start = SerializeUtils.ReadInt(out width, ref buff, start);
-            start = SerializeUtils.ReadColor(out color, ref buff, start);
-            start = SerializeUtils.ReadBool(out stipple, ref buff, start);
+            start = SerializeUtils.ReadInt(out X1, ref buff, start);
+            start = SerializeUtils.ReadInt(out Y1, ref buff, start);
+            start = SerializeUtils.ReadInt(out X2, ref buff, start);
+            start = SerializeUtils.ReadInt(out Y2, ref buff, start);
+            start = SerializeUtils.ReadInt(out Width, ref buff, start);
+            start = SerializeUtils.ReadColor(out Color, ref buff, start);
+            start = SerializeUtils.ReadBool(out Stipple, ref buff, start);
             return start;
         }
 
         public override int Write(ref byte[] buff, int start)
         {
-            start = SerializeUtils.WriteInt(x1, ref buff, start);
-            start = SerializeUtils.WriteInt(y1, ref buff, start);
-            start = SerializeUtils.WriteInt(x2, ref buff, start);
-            start = SerializeUtils.WriteInt(y2, ref buff, start);
-            start = SerializeUtils.WriteInt(width, ref buff, start);
-            start = SerializeUtils.WriteColor(ref color, ref buff, start);
-            start = SerializeUtils.WriteBool(stipple, ref buff, start);
+            start = SerializeUtils.WriteInt(X1, ref buff, start);
+            start = SerializeUtils.WriteInt(Y1, ref buff, start);
+            start = SerializeUtils.WriteInt(X2, ref buff, start);
+            start = SerializeUtils.WriteInt(Y2, ref buff, start);
+            start = SerializeUtils.WriteInt(Width, ref buff, start);
+            start = SerializeUtils.WriteColor(ref Color, ref buff, start);
+            start = SerializeUtils.WriteBool(Stipple, ref buff, start);
             return start;
         }
     };
 
     public class RectEvent : Serializable
     {
-        public int x1, y1, x2, y2;
-        public Color color;
-        public bool shouldFilled;
+        public int X1, Y1, X2, Y2;
+        public Color Color;
+        public bool ShouldFilled;
 
         public override int Read(ref byte[] buff, int start)
         {
-            start = SerializeUtils.ReadInt(out x1, ref buff, start);
-            start = SerializeUtils.ReadInt(out y1, ref buff, start);
-            start = SerializeUtils.ReadInt(out x2, ref buff, start);
-            start = SerializeUtils.ReadInt(out y2, ref buff, start);
-            start = SerializeUtils.ReadColor(out color, ref buff, start);
-            start = SerializeUtils.ReadBool(out shouldFilled, ref buff, start);
+            start = SerializeUtils.ReadInt(out X1, ref buff, start);
+            start = SerializeUtils.ReadInt(out Y1, ref buff, start);
+            start = SerializeUtils.ReadInt(out X2, ref buff, start);
+            start = SerializeUtils.ReadInt(out Y2, ref buff, start);
+            start = SerializeUtils.ReadColor(out Color, ref buff, start);
+            start = SerializeUtils.ReadBool(out ShouldFilled, ref buff, start);
             return start;
         }
 
         public override int Write(ref byte[] buff, int start)
         {
-            start = SerializeUtils.WriteInt(x1, ref buff, start);
-            start = SerializeUtils.WriteInt(y1, ref buff, start);
-            start = SerializeUtils.WriteInt(x2, ref buff, start);
-            start = SerializeUtils.WriteInt(y2, ref buff, start);
-            start = SerializeUtils.WriteColor(ref color, ref buff, start);
-            start = SerializeUtils.WriteBool(shouldFilled, ref buff, start);
+            start = SerializeUtils.WriteInt(X1, ref buff, start);
+            start = SerializeUtils.WriteInt(Y1, ref buff, start);
+            start = SerializeUtils.WriteInt(X2, ref buff, start);
+            start = SerializeUtils.WriteInt(Y2, ref buff, start);
+            start = SerializeUtils.WriteColor(ref Color, ref buff, start);
+            start = SerializeUtils.WriteBool(ShouldFilled, ref buff, start);
             return start;
         }
     };
@@ -133,21 +133,20 @@ namespace IpcLibrary
 
         public override int Read(ref byte[] buff, int start)
         {
-            int count;
             LineEvents.Clear();
-            start = SerializeUtils.ReadInt(out count, ref buff, start);
-            for (int i = 0; i < count; i++)
+            start = SerializeUtils.ReadInt(out var count, ref buff, start);
+            var lineEvent = new LineEvent();
+            for (var i = 0; i < count; i++)
             {
-                LineEvent lineEvent = new LineEvent();
                 start = lineEvent.Read(ref buff, start);
                 LineEvents.Add(lineEvent);
             }
 
             RectEvents.Clear();
             start = SerializeUtils.ReadInt(out count, ref buff, start);
-            for (int i = 0; i < count; i++)
+            var rectEvent = new RectEvent();
+            for (var i = 0; i < count; i++)
             {
-                RectEvent rectEvent = new RectEvent();
                 start = rectEvent.Read(ref buff, start);
                 RectEvents.Add(rectEvent);
             }
@@ -163,10 +162,10 @@ namespace IpcLibrary
         {
             try
             {
-                int count = LineEvents.Count;
+                var count = LineEvents.Count;
                 count = Math.Min(500, count);
                 start = SerializeUtils.WriteInt(count, ref buff, start);
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     start = LineEvents[i].Write(ref buff, start);
                 }
@@ -174,7 +173,7 @@ namespace IpcLibrary
                 count = RectEvents.Count;
                 count = Math.Min(500, count);
                 start = SerializeUtils.WriteInt(count, ref buff, start);
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     start = RectEvents[i].Write(ref buff, start);
                 }

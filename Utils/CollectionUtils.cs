@@ -15,8 +15,8 @@ namespace ManiaRTRender.Utils
 
         public static void AddSome<T>(this ICollection<T> destination, IList<T> source, int start = 0)
         {
-            int size = source.Count();
-            for (int i = start; i < size; i++) {
+            var size = source.Count();
+            for (var i = start; i < size; i++) {
                 destination.Add(source[i]);
             }
         }
@@ -29,8 +29,8 @@ namespace ManiaRTRender.Utils
 
         public static int BinarySearch<E>(this List<E> data, long val, GetValue<E, long> getter)
         {
-            int start = 0;
-            int end = data.Count - 1;
+            var start = 0;
+            var end = data.Count - 1;
             if (start > end)
             {
                 return start - 1;

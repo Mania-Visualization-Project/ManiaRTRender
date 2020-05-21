@@ -11,15 +11,14 @@ namespace ManiaRTRender.Utils
 {
     public static class OsuUtils
     {
-        private static readonly double[] BASE_JUDGEMENT_OFFSET = new double[] { 16.5, 64, 97, 127, 151, 188 };
-        private static readonly double[] BASE_JUDGEMENT_OFFSET_HR = new double[] { 11.5, 45, 69, 90, 107, 133 };
-        private static readonly double[] BASE_JUDGEMENT_OFFSET_EZ = new double[] { 22.5, 89, 135, 177, 211, 263 };
+        private static readonly double[] BASE_JUDGEMENT_OFFSET = { 16.5, 64, 97, 127, 151, 188 };
+        private static readonly double[] BASE_JUDGEMENT_OFFSET_HR = { 11.5, 45, 69, 90, 107, 133 };
+        private static readonly double[] BASE_JUDGEMENT_OFFSET_EZ = { 22.5, 89, 135, 177, 211, 263 };
         private static readonly double DECREMENT_NONE = 3.0;
         private static readonly double DECREMENT_HR = 2.1;
         private static readonly double DECREMENT_EZ = 4.2;
 
-        public static readonly Color[] JUDGEMENT_COLORS = new Color[]
-        {
+        public static readonly Color[] JUDGEMENT_COLORS = {
             Color.FromArgb(255, 255, 255),
             Color.FromArgb(255, 210, 55),
             Color.FromArgb(121, 208, 32),
@@ -31,7 +30,7 @@ namespace ManiaRTRender.Utils
 
         private static double[] GetJudgementWindow(double od, ModsInfo modsInfo)
         {
-            double[] result = new double[6];
+            var result = new double[6];
             double decrement;
             if (modsInfo.HasMod(ModsInfo.Mods.HardRock))
             {
@@ -49,8 +48,8 @@ namespace ManiaRTRender.Utils
                 decrement = DECREMENT_NONE;
             }
 
-            double speedRatio = GetSpeedRatio(modsInfo);
-            for (int i = 1; i < 6; i++)
+            var speedRatio = GetSpeedRatio(modsInfo);
+            for (var i = 1; i < 6; i++)
             {
                 result[i] -= decrement * od;
                 result[i] *= speedRatio;
@@ -60,75 +59,78 @@ namespace ManiaRTRender.Utils
         }
 
         // a naive parser
-        public static ManiaBeatmap ReadBeatmap(string beatmap_file, ModsInfo modsInfo)
+        public static ManiaBeatmap ReadBeatmap(string beatmapFile, ModsInfo modsInfo)
         {
-            bool is_hit_object = false;
-            ManiaBeatmap beatmap = new ManiaBeatmap();
-            double od = double.NaN;
-            List<Note> notes = new List<Note>();
+            var isHitObject = false;
+            var beatmap = new ManiaBeatmap();
+            var od = double.NaN;
+            var notes = new List<Note>();
 
             Exception expInParsing = null;
 
-            using (var fs = File.OpenRead(beatmap_file))
-            using (StreamReader reader = new StreamReader(fs))
+            using (var fs = File.OpenRead(beatmapFile))
+            using (var reader = new StreamReader(fs))
             {
-
-                while (!reader.EndOfStream)
+                var line = reader.ReadLine()?.Trim();
+                if (line != null)
                 {
-                    string line = reader.ReadLine().Trim();
+                    var elements = line.Split(',');
+                    while (!reader.EndOfStream)
+                    {
+                        if (line.StartsWith("CircleSize"))
+                        {
+                            try
+                            {
+                                beatmap.Key = int.Parse(line.Split(':').Last());
+                                Logger.I($"Find key: {beatmap.Key}");
+                            }
+                            catch (Exception e)
+                            {
+                                Logger.E(e.StackTrace);
+                            }
+                        }
+                        else if (line.StartsWith("OverallDifficulty"))
+                        {
+                            try
+                            {
+                                od = double.Parse(line.Split(':').Last());
+                                Logger.I($"Find od: {od}");
+                            } 
+                            catch (Exception e)
+                            {
+                                Logger.E(e.StackTrace);
+                            }
+                        }
+                        else if (line.StartsWith("["))
+                        {
+                            isHitObject = line == "[HitObjects]";
+                            continue;
+                        }
+                        else if (line.StartsWith("Mode"))
+                        {
+                            beatmap.IsMania = 3 == int.Parse(line.Split(':').Last());
+                        }
 
-                    if (line.StartsWith("CircleSize"))
-                    {
-                        try
+                        if (!isHitObject || line == string.Empty) continue;
                         {
-                            beatmap.Key = int.Parse(line.Split(':').Last());
-                            Logger.I($"Find key: {beatmap.Key}");
+                            try
+                            {
+                                var note = new Note
+                                {
+                                    Column = (int) Math.Floor(int.Parse(elements[0]) * beatmap.Key / 512.0),
+                                    TimeStamp = long.Parse(elements[2])
+                                };
+                                var endTime = long.Parse(elements[5].Split(':')[0]);
+                                note.Duration = (int.Parse(elements[3]) & 128) != 0 ? endTime - note.TimeStamp : 0L;
+                                notes.Add(note);
+                            }
+                            catch (Exception e)
+                            {
+                                expInParsing = e;
+                            }
                         }
-                        catch (Exception e)
-                        {
-                            Logger.E(e.StackTrace);
-                        }
-                    }
-                    else if (line.StartsWith("OverallDifficulty"))
-                    {
-                        try
-                        {
-                            od = double.Parse(line.Split(':').Last());
-                            Logger.I($"Find od: {od}");
-                        } 
-                        catch (Exception e)
-                        {
-                            Logger.E(e.StackTrace);
-                        }
-                    }
-                    else if (line.StartsWith("["))
-                    {
-                        is_hit_object = line == "[HitObjects]";
-                        continue;
-                    }
-                    else if (line.StartsWith("Mode"))
-                    {
-                        beatmap.IsMania = 3 == int.Parse(line.Split(':').Last());
-                    }
 
-                    if (is_hit_object && line != string.Empty)
-                    {
-                        try
-                        {
-                            Note note = new Note();
-                            string[] elements = line.Split(',');
-                            note.Column = (int)Math.Floor(int.Parse(elements[0]) * beatmap.Key / 512.0);
-                            note.TimeStamp = long.Parse(elements[2]);
-                            long end_time = long.Parse(elements[5].Split(':')[0]);
-                            note.Duration = (int.Parse(elements[3]) & 128) != 0 ? end_time - note.TimeStamp : 0L;
-                            notes.Add(note);
-                        }
-                        catch (Exception e)
-                        {
-                            expInParsing = e;
-                        }
                     }
-
                 }
             }
 
@@ -159,7 +161,7 @@ namespace ManiaRTRender.Utils
 
             if (modsInfo.HasMod(ModsInfo.Mods.Mirror))
             {
-                foreach (Note n in beatmap.Notes) n.Column = beatmap.Key - n.Column - 1;
+                foreach (var n in beatmap.Notes) n.Column = beatmap.Key - n.Column - 1;
             }
             if (modsInfo.HasMod(ModsInfo.Mods.Random))
             {
@@ -168,20 +170,14 @@ namespace ManiaRTRender.Utils
             return beatmap;
         }
 
-        public static double GetSpeedRatio(ModsInfo mods_info)
+        public static double GetSpeedRatio(ModsInfo modsInfo)
         {
-            if (mods_info.HasMod(ModsInfo.Mods.DoubleTime))
+            if (modsInfo.HasMod(ModsInfo.Mods.DoubleTime))
             {
                 return 1.5;
             }
-            else if (mods_info.HasMod(ModsInfo.Mods.HalfTime))
-            {
-                return 0.75;
-            }
-            else
-            {
-                return 1.0;
-            }
+
+            return modsInfo.HasMod(ModsInfo.Mods.HalfTime) ? 0.75 : 1.0;
         }
     }
 }
