@@ -52,6 +52,15 @@ ManiaRTRender支持修改下落速度、背景图片、渲染帧数以及UI元�
 
 请参考[OsuRTDataProvider](https://github.com/OsuSync/OsuRTDataProvider)中关于TourneyMode的介绍。修改OsuRTDataProvider的Tourney相关配置即可。
 
+## 编译方法
+```bash
+git clone git@github.com:Keytoyze/ManiaRTRender.git ManiaRTRender
+git clone git@github.com:OsuSync/Sync.git Sync
+git clone git@github.com:OsuSync/OsuRTDataProvider.git OsuRTDataProvider
+cd ManiaRTRender
+```
+
+之后使用Visual Studio打开ManiaRTRender.sln。
 ## LICENSE
 
 [GNU General Public License v3.0](https://github.com/Keytoyze/ManiaRTRender/blob/master/LICENSE)

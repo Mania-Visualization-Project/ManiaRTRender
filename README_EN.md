@@ -54,6 +54,16 @@ ManiaRTRender supports modifying falling speed, background picture, rendering FP
 
 Please refer to the introduction of Tourney Mode in [OsuRTDataProvider](https://github.com/OsuSync/OsuRTDataProvider). Just to modify relevant tourney settings items in OsuRTDataProvider.
 
+## Compiling
+```bash
+git clone git@github.com:Keytoyze/ManiaRTRender.git ManiaRTRender
+git clone git@github.com:OsuSync/Sync.git Sync
+git clone git@github.com:OsuSync/OsuRTDataProvider.git OsuRTDataProvider
+cd ManiaRTRender
+```
+
+Using Visual Studio to open ManiaRTRender.sln.
+
 ## LICENSE
 
 [GNU General Public License v3.0](https://github.com/Keytoyze/ManiaRTRender/blob/master/LICENSE)
