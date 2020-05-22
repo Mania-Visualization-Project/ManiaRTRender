@@ -17,9 +17,19 @@ ManiaRTRender是一个[OsuSync](https://github.com/Deliay/osuSync)的可视化�
 
 ## 安装方法
 
+### 自动安装
+1. 安装[OsuSync](https://github.com/Deliay/osuSync)。
+2. 打开Sync.exe，输入指令
+```
+plugins install ManiaRTRender
+plugins update
+```
+
+### 手动安装
+
 1. 安装[OsuSync](https://github.com/Deliay/osuSync)。
 
-2. 安装[OsuRTDataProvider](https://github.com/OsuSync/OsuRTDataProvider)。根据提示，下载最新版本（要求至少`1.6.1`版本），覆盖安装到OsuSync即可。
+2. 安装[OsuRTDataProvider](https://github.com/OsuSync/OsuRTDataProvider)。根据提示，下载最新版本，覆盖安装到OsuSync即可。
 
 3. 下载[ManiaRTRender](https://github.com/Keytoyze/ManiaRTRender/releases)。解压后，同样覆盖安装到OsuSync中的Plugins文件夹中。
 

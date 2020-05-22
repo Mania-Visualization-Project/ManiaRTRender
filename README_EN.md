@@ -18,13 +18,24 @@ DEMO: https://www.bilibili.com/video/BV1vE411c73P
 
 ## Installation
 
-1. Install [OsuSync](https://github.com/Deliay/osuSync)。
+### Auto Installation
+1. Install [OsuSync](https://github.com/Deliay/osuSync).
 
-2. Install [OsuRTDataProvider](https://github.com/OsuSync/OsuRTDataProvider). Download the latest version (`1.6.1` at least) as prompted, and copy it to OsuSync. 
+2. Open Sync.exe, enter the following commands.
+```
+plugins install ManiaRTRender
+plugins update
+```
+
+### Manual Installation
+
+1. Install [OsuSync](https://github.com/Deliay/osuSync).
+
+2. Install [OsuRTDataProvider](https://github.com/OsuSync/OsuRTDataProvider). Download the latest version as prompted, and copy it to OsuSync. 
 
 3. Download [ManiaRTRender](https://github.com/Keytoyze/ManiaRTRender/releases). After extracting it, copy it to OsuSync as well.
 
-4. Open Sync.exe。
+4. Open Sync.exe.
 
 ## Function Menu
 Right click in the tool window will open a function menu, as follows.
