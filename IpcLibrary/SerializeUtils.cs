@@ -19,11 +19,11 @@ namespace IpcLibrary
             //    buff = ms.GetBuffer();
             //}
             //return buff;
-            MemoryStream ms = new MemoryStream();
+            var ms = new MemoryStream();
             //创建序列化的实例
-            BinaryFormatter formatter = new BinaryFormatter();
+            var formatter = new BinaryFormatter();
             formatter.Serialize(ms, obj);//序列化对象，写入ms流中  
-            byte[] bytes = ms.GetBuffer();
+            var bytes = ms.GetBuffer();
             return bytes;
         }
 
@@ -40,9 +40,8 @@ namespace IpcLibrary
             //Console.WriteLine("byte 2 object 2");
             //return obj;
             object obj = null;
-            MemoryStream ms = new MemoryStream(bytes);
-            ms.Position = 0;
-            BinaryFormatter formatter = new BinaryFormatter();
+            var ms = new MemoryStream(bytes) {Position = 0};
+            var formatter = new BinaryFormatter();
             obj = formatter.Deserialize(ms);//把内存流反序列成对象  
             ms.Close();
             return obj;
@@ -66,24 +65,24 @@ namespace IpcLibrary
             return value;
         }
 
-        private static List<ShareMem> MemDBList = new List<ShareMem>();
+        private static List<ShareMem> _memDbList = new List<ShareMem>();
 
         public static int InitShareMemory(string name, int size)
         {
-            ShareMem MemDB = new ShareMem();
-            MemDB.Init($"ManiaRTRender_{name}", size);
-            MemDBList.Add(MemDB);
-            return MemDBList.Count - 1;
+            var memDb = new ShareMem();
+            memDb.Init($"ManiaRTRender_{name}", size);
+            _memDbList.Add(memDb);
+            return _memDbList.Count - 1;
         }
 
         public static void Save(int id, ref byte[] bytes, int length)
         {
             //Console.WriteLine($"save: {4} {id}");
 
-            byte[] sizeBytes = new byte[4];
+            var sizeBytes = new byte[4];
             SerializeUtils.Int2Bytes(length, ref sizeBytes, 0);
 
-            MemDBList[id].Write(sizeBytes, 0, 4);
+            _memDbList[id].Write(sizeBytes, 0, 4);
             //Console.WriteLine($"save: {length} {id}");
 
             //string s = "";
@@ -94,20 +93,20 @@ namespace IpcLibrary
             //Console.WriteLine(s);
 
 
-            MemDBList[id].Write(bytes, 4, length);
+            _memDbList[id].Write(bytes, 4, length);
         }
 
         public static void Fetch(int id, ref byte[] buff)
         {
-            byte[] bytes = new byte[4];
-            MemDBList[id].Read(ref bytes, 0, 4);
-            int size = SerializeUtils.Bytes2Int(ref bytes, 0);
+            var bytes = new byte[4];
+            _memDbList[id].Read(ref bytes, 0, 4);
+            var size = SerializeUtils.Bytes2Int(ref bytes, 0);
 
             //Console.WriteLine($"fetch: {4} {id} {size}");
 
             
 
-            MemDBList[id].Read(ref buff, 4, size);
+            _memDbList[id].Read(ref buff, 4, size);
 
             //string s = "";
             //for (int i = 0; i < size; i++)
@@ -149,9 +148,8 @@ namespace IpcLibrary
 
         public static int WriteString(ref string str, ref byte[] buff, int start)
         {
-            string targetString = str;
-            if (targetString == null) targetString = "";
-            byte[] content = System.Text.Encoding.Default.GetBytes(targetString);
+            var targetString = str ?? "";
+            var content = System.Text.Encoding.Default.GetBytes(targetString);
             start = WriteInt(content.Length, ref buff, start);
             Array.Copy(content, 0, buff, start, content.Length);
             return start + content.Length;
@@ -161,7 +159,7 @@ namespace IpcLibrary
         {
             int length;
             start = ReadInt(out length, ref buff, start);
-            byte[] content = new byte[length];
+            var content = new byte[length];
             Array.Copy(buff, start, content, 0, length);
             str = System.Text.Encoding.Default.GetString(content);
             return start + length;

@@ -23,12 +23,12 @@ namespace ManiaRTRender.Core
         public PlayType PlayType { get; private set; }
         public GameStatus Status { get; private set; }
 
-        private readonly Judger Judger = new Judger();
-        private readonly Stopwatch SW = new Stopwatch();
+        private readonly Judger _judger = new Judger();
+        private readonly Stopwatch _sw = new Stopwatch();
 
         public long LastPlayingTime;
-        private long LastSystemTime;
-        public double rate; // for replay rate
+        private long _lastSystemTime;
+        public double Rate; // for replay rate
 
         public Game()
         {
@@ -37,18 +37,18 @@ namespace ManiaRTRender.Core
             SpeedRatio = 1.0;
         }
 
-        public bool Start(string beatmap_file, ModsInfo mods_info)
+        public bool Start(string beatmapFile, ModsInfo modsInfo)
         {
             if (Status != GameStatus.Stop) return true;
             Beatmap = null;
-            ManiaBeatmap currentBeatmap = OsuUtils.ReadBeatmap(beatmap_file, mods_info);
+            var currentBeatmap = OsuUtils.ReadBeatmap(beatmapFile, modsInfo);
             if (currentBeatmap == null)
             {
                 return false;
             }
             
             Beatmap = currentBeatmap;
-            SpeedRatio = OsuUtils.GetSpeedRatio(mods_info);
+            SpeedRatio = OsuUtils.GetSpeedRatio(modsInfo);
             PlayType = PlayType.Unknown;
             Status = GameStatus.Playing;
 
@@ -66,28 +66,28 @@ namespace ManiaRTRender.Core
         private void Reset()
         {
             LastPlayingTime = long.MaxValue;
-            LastSystemTime = 0;
+            _lastSystemTime = 0;
             
-            rate = 1.0;
+            Rate = 1.0;
             lock (Actions)
             {
                 Actions.Clear();
             }
             if (Beatmap != null)
             {
-                Judger.init(Beatmap);
+                _judger.Init(Beatmap);
             }
-            SW.Restart();
+            _sw.Restart();
 
             TryToJudge();
         }
 
-        public void SetHitEvents(PlayType play_type, List<HitEvent> hit_events)
+        public void SetHitEvents(PlayType playType, List<HitEvent> hitEvents)
         {
-            this.PlayType = play_type;
-            this.RawEvents = hit_events;
+            this.PlayType = playType;
+            this.RawEvents = hitEvents;
 
-            if (Judger.ShouldReset(hit_events)) // should reset
+            if (_judger.ShouldReset(hitEvents)) // should reset
             {
                 Reset();
             }
@@ -99,21 +99,21 @@ namespace ManiaRTRender.Core
 
         private void TryToJudge()
         {
-            Judger.TryToJudge(RawEvents, Actions);
+            _judger.TryToJudge(RawEvents, Actions);
         }
 
         public long GetPlayingTime()
         {
             if (Status != GameStatus.Playing) return LastPlayingTime;
-            long interval = SW.ElapsedMilliseconds - LastSystemTime;
+            var interval = _sw.ElapsedMilliseconds - _lastSystemTime;
             if (interval >= 1.5 * Setting.ORTDPListenInterval)
             {
                 // wait for too long time, pause!
                 interval = 0;
                 Status = GameStatus.Pause;
             }
-            long PlayingOffset = PlayType == PlayType.Playing ? Setting.ORTDPListenInterval : 0;
-            return LastPlayingTime + (long)(interval * rate) - PlayingOffset;
+            long playingOffset = PlayType == PlayType.Playing ? Setting.ORTDPListenInterval : 0;
+            return LastPlayingTime + (long)(interval * Rate) - playingOffset;
         }
 
         public void SynchronizeTime(long pt)
@@ -129,10 +129,10 @@ namespace ManiaRTRender.Core
             Status = GameStatus.Playing;
 
             // playing -> playing : calculate rate
-            long current_time = SW.ElapsedMilliseconds;
-            long playing_interval = pt - LastPlayingTime;
-            long system_interval = current_time - LastSystemTime;
-            rate = (double)playing_interval / system_interval;
+            var currentTime = _sw.ElapsedMilliseconds;
+            var playingInterval = pt - LastPlayingTime;
+            var systemInterval = currentTime - _lastSystemTime;
+            Rate = (double)playingInterval / systemInterval;
 
             SetTime(pt);
         }
@@ -140,7 +140,7 @@ namespace ManiaRTRender.Core
         private void SetTime(long pt)
         {
             LastPlayingTime = pt;
-            LastSystemTime = SW.ElapsedMilliseconds;
+            _lastSystemTime = _sw.ElapsedMilliseconds;
         }
     }
 }

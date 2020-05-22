@@ -15,36 +15,33 @@ namespace RenderClient
 
         public static bool IsVSync => FPS == 0;
         public static int ORTDPListenInterval = 100;
-        private static bool HasInit = false;
-        private static int RemoteId = -1;
-        private static byte[] buff = new byte[65536];
+        private static bool _hasInit = false;
+        private static int _remoteId = -1;
+        private static byte[] _buff = new byte[65536];
 
         public static bool SyncIfNeed()
         {
-            if (HasInit) return false;
-            if (RemoteId < 0) RemoteId = SerializeUtils.InitShareMemory(IpcConstants.OBJECT_CONFIG_NAME, IpcConstants.SIZE_CONFIG);
+            if (_hasInit) return false;
+            if (_remoteId < 0) _remoteId = SerializeUtils.InitShareMemory(IpcConstants.OBJECT_CONFIG_NAME, IpcConstants.SIZE_CONFIG);
 
             //RemoteConfig remoteConfig = (RemoteConfig)Activator.GetObject(typeof(RemoteConfig), IpcConstants.URL_CONFIG);
             //RemoteConfig remoteConfig = (RemoteConfig)SerializeUtils.Fetch(RemoteId);
 
-            SerializeUtils.Fetch(RemoteId, ref buff);
+            SerializeUtils.Fetch(_remoteId, ref _buff);
             RemoteConfig remoteConfig = new RemoteConfig();
-            remoteConfig.Read(ref buff, 0);
+            remoteConfig.Read(ref _buff, 0);
 
-            if (remoteConfig.Loaded)
-            {
-                Speed = remoteConfig.Speed;
-                FPS = remoteConfig.FPS;
-                NoteHeight = remoteConfig.NoteHeight;
-                HitHeight = remoteConfig.HitHeight;
-                NoteStrokeWidth = remoteConfig.NoteStrokeWidth;
-                BackgroundPicture = remoteConfig.BackgroundPicture;
-                BackgroundPictureInPlaying = remoteConfig.BackgroundPictureInPlaying;
-                HasInit = true;
-                return true;
-            }
+            if (!remoteConfig.Loaded) return false;
+            Speed = remoteConfig.Speed;
+            FPS = remoteConfig.FPS;
+            NoteHeight = remoteConfig.NoteHeight;
+            HitHeight = remoteConfig.HitHeight;
+            NoteStrokeWidth = remoteConfig.NoteStrokeWidth;
+            BackgroundPicture = remoteConfig.BackgroundPicture;
+            BackgroundPictureInPlaying = remoteConfig.BackgroundPictureInPlaying;
+            _hasInit = true;
+            return true;
 
-            return false;
         }
     }
 }

@@ -6,7 +6,7 @@ namespace IpcLibrary
     public class ShareMem
     {
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, IntPtr lParam);
+        public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, IntPtr lParam);
 
         [DllImport("Kernel32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr CreateFileMapping(int hFile, IntPtr lpAttributes, uint flProtect, uint dwMaxSizeHi, uint dwMaxSizeLow, string lpName);
@@ -88,14 +88,7 @@ namespace IpcLibrary
                 }
                 else
                 {
-                    if (GetLastError() == ERROR_ALREADY_EXISTS)  //已经创建
-                    {
-                        m_bAlreadyExist = true;
-                    }
-                    else                                         //新创建
-                    {
-                        m_bAlreadyExist = false;
-                    }
+                    m_bAlreadyExist = GetLastError() == ERROR_ALREADY_EXISTS;
                 }
                 //---------------------------------------
                 //创建内存映射
@@ -129,11 +122,9 @@ namespace IpcLibrary
         /// </summary>
         public void Close()
         {
-            if (m_bInit)
-            {
-                UnmapViewOfFile(m_pwData);
-                CloseHandle(m_hSharedMemoryFile);
-            }
+            if (!m_bInit) return;
+            UnmapViewOfFile(m_pwData);
+            CloseHandle(m_hSharedMemoryFile);
         }
 
         /// <summary>

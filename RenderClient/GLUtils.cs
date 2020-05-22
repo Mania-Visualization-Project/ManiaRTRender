@@ -73,14 +73,14 @@ namespace RenderClient
             internal bool HasLoadedImage = false;
         }
 
-        private static void LoadImage(string image_path, ImageContext imageContext)
+        private static void LoadImage(string imagePath, ImageContext imageContext)
         {
             Bitmap bitmap;
-            imageContext.CurrentImagePath = image_path;
+            imageContext.CurrentImagePath = imagePath;
 
             try
             {
-                bitmap = image_path.Trim() == string.Empty ? Properties.Resources.DefaultBackground : new Bitmap(image_path);
+                bitmap = imagePath.Trim() == string.Empty ? Properties.Resources.DefaultBackground : new Bitmap(imagePath);
             } catch (Exception e)
             {
                 //Logger.E($"Fail to load image from {image_path}: {e.Message}");
@@ -105,11 +105,11 @@ namespace RenderClient
             imageContext.HasLoadedImage = true;
         }
 
-        public static void DrawImage(string image_path, ImageContext imageContext)
+        public static void DrawImage(string imagePath, ImageContext imageContext)
         {
-            if (image_path != imageContext.CurrentImagePath)
+            if (imagePath != imageContext.CurrentImagePath)
             {
-                LoadImage(image_path, imageContext);
+                LoadImage(imagePath, imageContext);
             }
 
             if (!imageContext.HasLoadedImage) return;

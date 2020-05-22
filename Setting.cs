@@ -109,8 +109,8 @@ namespace ManiaRTRender
         public static int NoteHeight = 40;
         public static int HitHeight = 5;
         public static int NoteStrokeWidth = 3;
-        public static String BackgroundPicture = "";
-        public static String BackgroundPictureInPlaying = "";
+        public static string BackgroundPicture = "";
+        public static string BackgroundPictureInPlaying = "";
 
         public static bool IsVSync => FPS == 0;
         public static int ORTDPListenInterval = 100;
@@ -123,23 +123,23 @@ namespace ManiaRTRender
             if (isSetting) SettingLoaded = true;
             else ORTDPLoaded = true;
 
-            if (SettingLoaded && ORTDPLoaded)
+            if (!SettingLoaded || !ORTDPLoaded) return;
+            RemoteConfig remoteConfig = new RemoteConfig
             {
-                RemoteConfig remoteConfig = new RemoteConfig();
-                remoteConfig.FPS = Setting.FPS;
-                remoteConfig.HitHeight = Setting.HitHeight;
-                remoteConfig.NoteHeight = Setting.NoteHeight;
-                remoteConfig.NoteStrokeWidth = Setting.NoteStrokeWidth;
-                remoteConfig.ORTDPListenInterval = Setting.ORTDPListenInterval;
-                remoteConfig.Speed = Setting.Speed;
-                remoteConfig.BackgroundPicture = Setting.BackgroundPicture;
-                remoteConfig.BackgroundPictureInPlaying = Setting.BackgroundPictureInPlaying;
-                remoteConfig.Loaded = true;
+                FPS = Setting.FPS,
+                HitHeight = Setting.HitHeight,
+                NoteHeight = Setting.NoteHeight,
+                NoteStrokeWidth = Setting.NoteStrokeWidth,
+                ORTDPListenInterval = Setting.ORTDPListenInterval,
+                Speed = Setting.Speed,
+                BackgroundPicture = Setting.BackgroundPicture,
+                BackgroundPictureInPlaying = Setting.BackgroundPictureInPlaying,
+                Loaded = true
+            };
 
-                byte[] buff = new byte[65536];
-                int length = remoteConfig.Write(ref buff, 0);
-                SerializeUtils.Save(RemoteConfig.id, ref buff, length);
-            }
+            byte[] buff = new byte[65536];
+            int length = remoteConfig.Write(ref buff, 0);
+            SerializeUtils.Save(RemoteConfig.ID, ref buff, length);
         }
     }
 }
