@@ -1,5 +1,10 @@
 # ManiaRTRender
 
+[![](https://img.shields.io/github/v/release/Keytoyze/ManiaRTRender?color=blue)](https://github.com/Keytoyze/ManiaRTRender/releases/latest)
+[![](https://img.shields.io/github/downloads/Keytoyze/ManiaRTRender/total)](https://github.com/Keytoyze/ManiaRTRender/releases)
+[![](https://img.shields.io/github/contributors/Keytoyze/ManiaRTRender?color=green)](https://github.com/Keytoyze/ManiaRTRender/graphs/contributors)
+[![](https://img.shields.io/github/license/Keytoyze/ManiaRTRender)](https://github.com/Keytoyze/ManiaRTRender/blob/master/LICENSE)
+
 [English Version](README_EN.md)
 
 ## 这是啥？
