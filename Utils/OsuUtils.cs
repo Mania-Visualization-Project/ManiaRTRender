@@ -11,12 +11,7 @@ namespace ManiaRTRender.Utils
 {
     public static class OsuUtils
     {
-        private static readonly double[] BASE_JUDGEMENT_OFFSET = new double[] { 16.5, 64, 97, 127, 151, 188 };
-        private static readonly double[] BASE_JUDGEMENT_OFFSET_HR = new double[] { 11.5, 45, 69, 90, 107, 133 };
-        private static readonly double[] BASE_JUDGEMENT_OFFSET_EZ = new double[] { 22.5, 89, 135, 177, 211, 263 };
-        private static readonly double DECREMENT_NONE = 3.0;
-        private static readonly double DECREMENT_HR = 2.1;
-        private static readonly double DECREMENT_EZ = 4.2;
+        private static readonly double[] BASE_JUDGEMENT_OFFSET = new double[] { 16, 34, 67, 97, 121, 158 };
 
         public static readonly Color[] JUDGEMENT_COLORS = new Color[]
         {
@@ -32,28 +27,25 @@ namespace ManiaRTRender.Utils
         private static double[] GetJudgementWindow(double od, ModsInfo modsInfo)
         {
             double[] result = new double[6];
-            double decrement;
+            BASE_JUDGEMENT_OFFSET.CopyTo(result, 0);
+            double modeRate = 1.0;
             if (modsInfo.HasMod(ModsInfo.Mods.HardRock))
             {
-                BASE_JUDGEMENT_OFFSET_HR.CopyTo(result, 0);
-                decrement = DECREMENT_HR;
+                modeRate /= 1.4;
             }
             else if (modsInfo.HasMod(ModsInfo.Mods.Easy))
             {
-                BASE_JUDGEMENT_OFFSET_EZ.CopyTo(result, 0);
-                decrement = DECREMENT_EZ;
+                modeRate *= 1.4;
             }
-            else
-            {
-                BASE_JUDGEMENT_OFFSET.CopyTo(result, 0);
-                decrement = DECREMENT_NONE;
-            }
-
             double speedRatio = GetSpeedRatio(modsInfo);
-            for (int i = 1; i < 6; i++)
+            modeRate *= speedRatio;
+            for (int i = 0; i < 6; i++)
             {
-                result[i] -= decrement * od;
-                result[i] *= speedRatio;
+                if (i != 0)
+                {
+                    result[i] += 3 * (10 - od);
+                }
+                result[i] *= modeRate;
             }
             Logger.I($"Judgement window: [{string.Join(", ", result)}]");
             return result;

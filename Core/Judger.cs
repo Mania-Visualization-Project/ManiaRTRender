@@ -14,11 +14,17 @@ namespace ManiaRTRender.Core
         private int _key;
         private double[] _judgementWindow;
         private Dictionary<int, Action> _currentHolding = new Dictionary<int, Action>();
-
+        private ManiaBeatmap _beatmap;
 
         public void Init(ManiaBeatmap beatmap)
         {
+            _beatmap = beatmap;
             _notesToJudge.CopyFrom(beatmap.Notes);
+            foreach (var note in _notesToJudge)
+            {
+                note.Judgable = true;
+                note.Judged = false;
+            }
             _judgementWindow = beatmap.JudgementWindow;
             _key = beatmap.Key;
             _actionIndex = 0;
@@ -41,37 +47,52 @@ namespace ManiaRTRender.Core
         {
             LinkedListNode<Note> listNode = _notesToJudge.First;
             LinkedListNode<Note> candidateNode = null;
-            long candidateDiff = 0;
             while (listNode != null)
             {
                 Note note = listNode.Value;
+                bool should_delete = false;
                 if (note.Column == action.Column)
                 {
                     long diff = action.TimeStamp - note.TimeStamp;
                     bool tooEarly = -diff > _judgementWindow[(int)Judgement.MISS]; // exclude early misses
-                    bool tooLate = diff > _judgementWindow[(int)Judgement.J_50];
-                    if (tooEarly) break;
-                    bool hit = !tooLate;
-                    if (hit)
+                    bool tooLate = diff > _judgementWindow[(int)Judgement.J_100];
+                    if (note.Duration != 0)
                     {
-                        if (candidateNode == null || (diff > 0 && candidateDiff > 0))
+                        diff = action.TimeStamp - note.EndTime;
+                        tooLate = note.Judged
+                            ? diff > -_judgementWindow[(int)Judgement.J_50]
+                            : diff > _judgementWindow[(int)Judgement.J_100];
+                    }
+                    if (tooEarly)
+                    {
+                        break;
+                    }
+                    if (tooLate || !note.Judgable)
+                    {
+                        should_delete = true;
+                    }
+                    else // Hit
+                    {
+                        if (candidateNode == null)
                         {
                             candidateNode = listNode;
-                            candidateDiff = diff;
+                            if (note.Duration == 0)
+                            {
+                                note.Judgable = false;
+                                note.Judged = true;
+                            }
                         }
                     }
                 }
+                var lastNode = listNode;
                 listNode = listNode.Next;
+                if (should_delete)
+                {
+                    _notesToJudge.Remove(lastNode);
+                }
             }
 
-            if (candidateNode != null)
-            {
-                Note note = candidateNode.Value;
-                _notesToJudge.Remove(candidateNode);
-                return note;
-            }
-
-            return null;
+            return candidateNode?.Value;
         }
 
         private bool JudgeHold(Action action)
@@ -90,6 +111,12 @@ namespace ManiaRTRender.Core
             return target.Duration != 0;
         }
 
+        private bool IsLNJudgedWith(long startDiff, long totalDiff, Judgement judgement, double rate)
+        {
+            var judgementTime = _judgementWindow[(int)judgement] * rate;
+            return startDiff <= judgementTime && totalDiff <= judgementTime * 2;
+        }
+
         private void JudgeRelease(Action action)
         {
             if (action.Target == null)
@@ -98,18 +125,48 @@ namespace ManiaRTRender.Core
                 return;
             }
             long endDiff = Math.Abs(action.EndTime - action.Target.EndTime);
-            endDiff = (long)(endDiff / 1.5); // LN lenience
-            action.JudgementEnd = GetJudgement(endDiff);
+            action.JudgementEnd = GetJudgement(endDiff * 1.5);
 
             // adjust target's judgement
             long startDiff = Math.Abs(action.TimeStamp - action.Target.TimeStamp);
-            long diff = (endDiff + startDiff) / 2;
-            Judgement judgement = GetJudgement(diff);
-            if (judgement == Judgement.MISS)
+            long totalDiff = startDiff + endDiff;
+
+            Judgement totalJudgement;
+            if (action.Target.EndTime - action.EndTime > _judgementWindow[(int)Judgement.J_50])
             {
-                judgement = endDiff > 0 ? Judgement.J_100 : Judgement.J_50;
+                totalJudgement = Judgement.MISS;
             }
-            action.Target.Judgement = judgement;
+            else
+            {
+                action.Target.Judgable = false;
+                if (IsLNJudgedWith(startDiff, totalDiff, Judgement.MAX, 1.2))
+                {
+                    totalJudgement = Judgement.MAX;
+                }
+                else if (IsLNJudgedWith(startDiff, totalDiff, Judgement.J_300, 1.1))
+                {
+                    totalJudgement = Judgement.J_300;
+                }
+                else if (IsLNJudgedWith(startDiff, totalDiff, Judgement.J_200, 1.0))
+                {
+                    totalJudgement = Judgement.J_200;
+                }
+                else if (IsLNJudgedWith(startDiff, totalDiff, Judgement.J_100, 1.0))
+                {
+                    totalJudgement = Judgement.J_100;
+                }
+                else
+                {
+                    totalJudgement = Judgement.J_50;
+                }
+            }
+            if (action.Target.Judged && (totalJudgement == Judgement.MAX || totalJudgement == Judgement.J_300))
+            {
+                totalJudgement = Judgement.J_200;
+            }
+            action.Target.Judged = true;
+            action.Target.Judgement = totalJudgement;
+            //action.Target.HasEverReleased = true;
         }
 
         public bool ShouldReset(List<HitEvent> rawEvents)
@@ -176,7 +233,15 @@ namespace ManiaRTRender.Core
                             }
                             else
                             {
-                                // hold -> hold: do nothing
+                                // hold -> hold: check if LN holding for too long
+                                if (_currentHolding.ContainsKey(j) && _currentHolding[j].Target != null)
+                                {
+                                    var maxEndTimeEnable = _currentHolding[j].Target.EndTime + (long)_judgementWindow[(int)Judgement.J_50];
+                                    if (t > maxEndTimeEnable)
+                                    {
+                                        ProcessLNRelease(j, t);
+                                    }
+                                }
                             }
                         }
                         else
@@ -200,18 +265,18 @@ namespace ManiaRTRender.Core
 
                 _actionIndex = count;
             }
-            
+
 
             // for debug
-            //int[] judgeCount = new int[6];
-            //if (Beatmap != null)
-            //{
-            //    foreach (Note n in Beatmap.Notes)
-            //    {
-            //        judgeCount[(int)n.Judgement] += 1;
-            //    }
-            //    Logger.E($"Judgement: {judgeCount[0]} {judgeCount[1]} {judgeCount[2]} {judgeCount[3]} {judgeCount[4]} {judgeCount[5]} ");
-            //}
+            int[] judgeCount = new int[6];
+            if (_beatmap != null)
+            {
+                foreach (Note n in _beatmap.Notes)
+                {
+                    judgeCount[(int)n.Judgement] += 1;
+                }
+                Logger.E($"Judgement: {judgeCount[0]} {judgeCount[1]} {judgeCount[2]} {judgeCount[3]} {judgeCount[4]} {judgeCount[5]} ");
+            }
         }
     }
 }

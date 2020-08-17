@@ -36,6 +36,8 @@ namespace ManiaRTRender.Core
     public class Note : BaseNote
     {
         public Judgement Judgement = Judgement.MISS;
+        public bool Judgable = true;
+        public bool Judged = false;
     }
 
     public class Action : BaseNote
