@@ -55,13 +55,13 @@ namespace ManiaRTRender.Core
                 {
                     long diff = action.TimeStamp - note.TimeStamp;
                     bool tooEarly = -diff > _judgementWindow[(int)Judgement.MISS]; // exclude early misses
-                    bool tooLate = diff > _judgementWindow[(int)Judgement.J_100];
+                    bool tooLate = diff >= _judgementWindow[(int)Judgement.J_100];
                     if (note.Duration != 0)
                     {
                         diff = action.TimeStamp - note.EndTime;
                         tooLate = note.Judged
-                            ? diff > -_judgementWindow[(int)Judgement.J_50]
-                            : diff > _judgementWindow[(int)Judgement.J_100];
+                            ? diff > -_judgementWindow[(int)Judgement.J_50]   // note was broken before
+                            : diff >= _judgementWindow[(int)Judgement.J_100];
                     }
                     if (tooEarly)
                     {
@@ -125,10 +125,16 @@ namespace ManiaRTRender.Core
                 return;
             }
             long endDiff = Math.Abs(action.EndTime - action.Target.EndTime);
-            action.JudgementEnd = GetJudgement(endDiff * 1.5);
+            action.JudgementEnd = GetJudgement(endDiff / 1.5);
 
             // adjust target's judgement
             long startDiff = Math.Abs(action.TimeStamp - action.Target.TimeStamp);
+            if (action.Target.TimeStamp - _judgementWindow[(int)Judgement.J_50] > action.TimeStamp)
+            {
+                // fxxking ppy
+                long start = action.Target.EndTime - 1;
+                startDiff = Math.Abs(action.Target.TimeStamp - start);
+            }
             long totalDiff = startDiff + endDiff;
 
             Judgement totalJudgement;

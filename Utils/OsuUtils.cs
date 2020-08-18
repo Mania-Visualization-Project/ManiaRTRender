@@ -45,7 +45,7 @@ namespace ManiaRTRender.Utils
                 {
                     result[i] += 3 * (10 - od);
                 }
-                result[i] *= modeRate;
+                result[i] = (int) (result[i] * modeRate);
             }
             Logger.I($"Judgement window: [{string.Join(", ", result)}]");
             return result;
