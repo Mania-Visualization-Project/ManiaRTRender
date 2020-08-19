@@ -274,15 +274,15 @@ namespace ManiaRTRender.Core
 
 
             // for debug
-            int[] judgeCount = new int[6];
-            if (_beatmap != null)
-            {
-                foreach (Note n in _beatmap.Notes)
-                {
-                    judgeCount[(int)n.Judgement] += 1;
-                }
-                Logger.E($"Judgement: {judgeCount[0]} {judgeCount[1]} {judgeCount[2]} {judgeCount[3]} {judgeCount[4]} {judgeCount[5]} ");
-            }
+            //int[] judgeCount = new int[6];
+            //if (_beatmap != null)
+            //{
+            //    foreach (Note n in _beatmap.Notes)
+            //    {
+            //        judgeCount[(int)n.Judgement] += 1;
+            //    }
+            //    Logger.E($"Judgement: {judgeCount[0]} {judgeCount[1]} {judgeCount[2]} {judgeCount[3]} {judgeCount[4]} {judgeCount[5]} ");
+            //}
         }
     }
 }

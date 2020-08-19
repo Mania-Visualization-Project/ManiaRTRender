@@ -29,6 +29,8 @@ namespace ManiaRTRender.Core
         public long LastPlayingTime;
         private long _lastSystemTime;
         public double Rate; // for replay rate
+        public double _targetRate = 0;
+        public double _changeRateCount = 0;
 
         public Game()
         {
@@ -68,7 +70,7 @@ namespace ManiaRTRender.Core
             LastPlayingTime = long.MaxValue;
             _lastSystemTime = 0;
             
-            Rate = 1.0;
+            Rate = SpeedRatio;
             lock (Actions)
             {
                 Actions.Clear();
@@ -132,7 +134,8 @@ namespace ManiaRTRender.Core
             var currentTime = _sw.ElapsedMilliseconds;
             var playingInterval = pt - LastPlayingTime;
             var systemInterval = currentTime - _lastSystemTime;
-            Rate = (double)playingInterval / systemInterval;
+            var targetRate = (double)playingInterval / systemInterval;
+            Rate = Setting.RateSmoothFactor * Rate + (1 - Setting.RateSmoothFactor) * targetRate;
 
             SetTime(pt);
         }

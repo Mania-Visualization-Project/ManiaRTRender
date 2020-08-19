@@ -55,6 +55,7 @@ namespace ManiaRTRender.Render
             process.StartInfo = startInfo;
             process.StartInfo.UseShellExecute = false;
             process.Start();
+            int serverSleepPerCycle = Setting.ServerSleepPerCycle;
 
             Task.Run(() =>
             {
@@ -75,7 +76,7 @@ namespace ManiaRTRender.Render
                         _remoteRenderCommand.RequestUpdate = false;
                         SendCommand();
 
-                        Thread.Sleep(8);
+                        Thread.Sleep(serverSleepPerCycle);
                     }
                 } 
                 catch (Exception e)

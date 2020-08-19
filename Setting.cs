@@ -87,6 +87,20 @@ namespace ManiaRTRender
             set => Setting.BackgroundPictureInPlaying = value;
             get => Setting.BackgroundPictureInPlaying;
         }
+        
+        [Integer(RequireRestart = true)]
+        public ConfigurationElement ServerSleepPerCycle
+        {
+            set => Setting.ServerSleepPerCycle = int.Parse(value);
+            get => Setting.ServerSleepPerCycle.ToString();
+        }
+
+        [Float(MinValue = 0.0f, MaxValue = 1.0f)]
+        public ConfigurationElement RateSmoothFactor
+        {
+            set => Setting.RateSmoothFactor = float.Parse(value);
+            get => Setting.RateSmoothFactor.ToString();
+        }
 
         public void onConfigurationLoad()
         {
@@ -109,6 +123,8 @@ namespace ManiaRTRender
         public static int NoteHeight = 40;
         public static int HitHeight = 5;
         public static int NoteStrokeWidth = 3;
+        public static int ServerSleepPerCycle = 8;
+        public static float RateSmoothFactor = 0.8f;
         public static string BackgroundPicture = "";
         public static string BackgroundPictureInPlaying = "";
 

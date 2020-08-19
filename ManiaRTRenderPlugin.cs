@@ -17,7 +17,7 @@ namespace ManiaRTRender
         private List<GameController> _gameControllers = new List<GameController>();
         public const string PLUGIN_NAME = "ManiaRTRender";
         public const string PLUGIN_AUTHOR = "Kuit";
-        public const string VERSION = "1.1.7";
+        public const string VERSION = "1.1.8";
 
         public ManiaRTRenderPlugin() : base(PLUGIN_NAME, PLUGIN_AUTHOR)
         {
@@ -59,7 +59,6 @@ namespace ManiaRTRender
                 if (reader != null && reader.TourneyListenerManagersCount == 0)
                 {
                     _gameControllers.Add(new GameController(-1, reader));
-                    //GameControllers.Add(new GameController(1, reader));
                 }
                 else
                 {
