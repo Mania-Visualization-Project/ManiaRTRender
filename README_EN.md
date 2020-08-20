@@ -65,8 +65,11 @@ ManiaRTRender supports modifying falling speed, background picture, rendering FP
 |NoteHeight|40|height of notes
 |HitHeight|5|height of hit objects
 |NoteStrokeWidth|3|stroke width of notes
+|RateSmoothFactor|0.8|Game Rate change factor (range: 0 - 1, higher to make falling down speed more stable but harder to change)
 
-## TourneyMode (in experiment)
+> Note: set `BackgroundPicture` to a pure color image, and set the transparent color to this color in live streaming softwares (e.g., OBS), then this renderer can hide in idle and show in playing automatically.
+
+## TourneyMode
 
 Please refer to the introduction of Tourney Mode in [OsuRTDataProvider](https://github.com/OsuSync/OsuRTDataProvider). Just to modify relevant tourney settings items in OsuRTDataProvider.
 
