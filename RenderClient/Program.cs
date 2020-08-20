@@ -19,10 +19,12 @@ namespace RenderClient
             //args = new string[] { "0", $"{Process.GetCurrentProcess().Id}" };
             if (args.Length != 2) return -args.Length;
             ParentId = int.Parse(args[1]);
+            var id = int.Parse(args[0]);
+            //var id = 0;
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new RenderForm(int.Parse(args[0])));
+            Application.Run(new RenderForm(id));
 
             return 0;
         }

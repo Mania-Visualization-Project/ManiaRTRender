@@ -83,16 +83,6 @@ namespace IpcLibrary
             SerializeUtils.Int2Bytes(length, ref sizeBytes, 0);
 
             _memDbList[id].Write(sizeBytes, 0, 4);
-            //Console.WriteLine($"save: {length} {id}");
-
-            //string s = "";
-            //for (int i = 0; i < length; i++)
-            //{
-            //    s = $"{s} {(int)bytes[i]}";
-            //}
-            //Console.WriteLine(s);
-
-
             _memDbList[id].Write(bytes, 4, length);
         }
 

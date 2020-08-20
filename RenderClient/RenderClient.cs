@@ -21,10 +21,15 @@ namespace RenderClient
         private bool _isHidden = false;
 
         private long _renderCount;
+        private long _renderTotalCount;
         private Stopwatch _fpsStopwatch;
         private RemoteRenderCommand _renderCommand = new RemoteRenderCommand();
         private RemoteRenderCommand _preCommand = new RemoteRenderCommand();
         private RemoteRenderCommand _targetCommand = null;
+
+        private FpsController _fpsController;
+        private int _basePlayingTime = int.MaxValue;
+        private long _baseSystemTime = long.MaxValue;
 
         private int _remoteID = -1;
             
@@ -32,10 +37,21 @@ namespace RenderClient
 
         public RenderClient(GLControl glControl, Form container, int id)
         {
-            this._glControl = glControl;
-            this._container = container;
-            this._fpsStopwatch = new Stopwatch();
+            _glControl = glControl;
+            _container = container;
+
+            if (Setting.SyncIfNeed())
+            {
+                _glControl.VSync = Setting.IsVSync;
+                if (!Setting.IsVSync)
+                {
+                    _fpsController = new FpsController(Setting.FPS);
+                }
+            }
+            _fpsStopwatch = new Stopwatch();
+            _fpsStopwatch.Start();
             _renderCount = 0;
+            _renderTotalCount = 0;
 
             _remoteID = SerializeUtils.InitShareMemory(IpcConstants.GetRenderObjName(id), IpcConstants.SIZE_RENDER);
             PlayerName = "Unknown";
@@ -83,7 +99,7 @@ namespace RenderClient
             Application.Idle += AppIdle;
             GLResize(_glControl, EventArgs.Empty);
 
-            if (!Setting.IsVSync) _fpsStopwatch.Start();
+            _fpsStopwatch.Start();
         }
 
         public void Close(CancelEventArgs e)
@@ -97,13 +113,14 @@ namespace RenderClient
             {
 
                 if (!Setting.IsVSync) {
-                    SpinWait.SpinUntil(
-                        () =>  _fpsStopwatch.ElapsedMilliseconds * Setting.FPS >= 1000
-                    );
+                    _fpsController.SpinFrame();
+                    //while (_fpsStopwatch.ElapsedMilliseconds * Setting.FPS <= 1000) ;
+                    //SpinWait.SpinUntil(
+                    //    () => _fpsStopwatch.ElapsedMilliseconds * Setting.FPS >= 1000
+                    //);
+                    //Thread.Sleep(1000 / Setting.FPS);
                 }
                 _glControl.Invalidate();
-
-                if (!Setting.IsVSync) _fpsStopwatch.Restart();
             }
         }
 
@@ -123,12 +140,8 @@ namespace RenderClient
 
         private void Render()
         {
-            if (Setting.SyncIfNeed())
-            {
-                _glControl.VSync = Setting.IsVSync;
-            }
-
             _renderCount += 1;
+            _renderTotalCount += 1;
 
             FetchCommand();
             _targetCommand = _renderCommand;
@@ -200,19 +213,41 @@ namespace RenderClient
                 GLUtils.DisableImage(_imageForegroundContext);
             }
 
+            var currentPlayingTime = _targetCommand.PlayingTime;
+            var currentSystemTime = _fpsStopwatch.ElapsedMilliseconds;
+            var expectedPlayingTime = _basePlayingTime + (currentSystemTime - _baseSystemTime);
+            var offset = (int)((expectedPlayingTime - currentPlayingTime) * _targetCommand.FallingSpeed);
+            if (currentPlayingTime != _basePlayingTime)
+            {
+                _basePlayingTime = currentPlayingTime;
+                _baseSystemTime = currentSystemTime;
+            }
+
             var lineEvents = _targetCommand.LineEvents;
             var rectEvents = _targetCommand.RectEvents;
 
             foreach (var lineEvent in lineEvents)
             {
-                GLUtils.DrawLine(lineEvent.X1, lineEvent.Y1, lineEvent.X2, lineEvent.Y2,
+                GLUtils.DrawLine(
+                    lineEvent.X1, Fall(lineEvent.Y1, lineEvent.Fallable, offset),
+                    lineEvent.X2, Fall(lineEvent.Y2, lineEvent.Fallable, offset),
                     lineEvent.Width, lineEvent.Color, lineEvent.Stipple);
             }
             foreach (var rectEvent in rectEvents)
             {
-                GLUtils.DrawRect(rectEvent.X1, rectEvent.Y1, rectEvent.X2, rectEvent.Y2,
+                GLUtils.DrawRect(
+                    rectEvent.X1, Fall(rectEvent.Y1, rectEvent.Fallable, offset),
+                    rectEvent.X2, Fall(rectEvent.Y2, rectEvent.Fallable, offset),
                     rectEvent.Color, rectEvent.ShouldFilled);
             }
+        }
+
+        private int Fall(int y, bool fallable, int offset)
+        {
+            if (!fallable || y == 0) return y;
+            var y2 = y + offset;
+            if (y2 >= IpcConstants.GAME_HEIGHT) return IpcConstants.GAME_HEIGHT;
+            return y2;
         }
     }
 }

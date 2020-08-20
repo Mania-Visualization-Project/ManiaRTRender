@@ -29,6 +29,7 @@ namespace ManiaRTRender.Render
         private long _preTime = long.MaxValue;
         private int _preActionsSize = 0;
         private bool _forceSync = false;
+        private FpsController _fpsController;
 
         private int _columnWidth = 0;
         private int _timeWindow;
@@ -56,6 +57,7 @@ namespace ManiaRTRender.Render
             process.StartInfo.UseShellExecute = false;
             process.Start();
             int serverSleepPerCycle = Setting.ServerSleepPerCycle;
+            _fpsController = new FpsController(120);
 
             Task.Run(() =>
             {
@@ -64,19 +66,21 @@ namespace ManiaRTRender.Render
                     while (true)
                     {
                         FetchCommand();
-                        while (!_remoteRenderCommand.RequestUpdate)
+
+                        if (_remoteRenderCommand.RequestUpdate)
                         {
-                            FetchCommand();
+                            long playingTime = RenderGame();
+
+                            _remoteRenderCommand.PlayerName = _playerName;
+                            _remoteRenderCommand.RectEvents = _rectEvents;
+                            _remoteRenderCommand.LineEvents = _lineEvents;
+                            _remoteRenderCommand.FallingSpeed = TimeToHeight(1);
+                            _remoteRenderCommand.PlayingTime = (int)playingTime;
+                            _remoteRenderCommand.RequestUpdate = false;
+                            SendCommand();
                         }
-                        RenderGame();
-
-                        _remoteRenderCommand.PlayerName = _playerName;
-                        _remoteRenderCommand.RectEvents = _rectEvents;
-                        _remoteRenderCommand.LineEvents = _lineEvents;
-                        _remoteRenderCommand.RequestUpdate = false;
-                        SendCommand();
-
-                        Thread.Sleep(serverSleepPerCycle);
+                        
+                        _fpsController.SpinFrame();
                     }
                 } 
                 catch (Exception e)
@@ -105,14 +109,14 @@ namespace ManiaRTRender.Render
             _playerName = player;
         }
 
-        private void RenderGame()
+        private long RenderGame()
         {
             _lineEvents.Clear();
             _rectEvents.Clear();
             if (_game.Status == GameStatus.Stop || _game.Beatmap == null)
             {
                 _remoteRenderCommand.DrawBackground = true;
-                return;
+                return -1;
             }
             _remoteRenderCommand.DrawBackground = false;
 
@@ -121,7 +125,7 @@ namespace ManiaRTRender.Render
             _timeWindow = (int)((double)IpcConstants.GAME_HEIGHT / Setting.Speed * TIME_INTERVAL * _game.SpeedRatio);
 
             long time = _game.GetPlayingTime();
-            if (time <= -10000 || time >= 1000000000) return;
+            if (time <= -10000 || time >= 1000000000) return -1;
             lock (_game.Actions)
             {
                 if (time < _preTime || _forceSync)
@@ -150,7 +154,8 @@ namespace ManiaRTRender.Render
                 Y2 = Setting.NoteHeight + 2,
                 Width = 2,
                 Color = Color.Red,
-                Stipple = false
+                Stipple = false,
+                Fallable = false
             });
 
             // 1. draw notes
@@ -170,7 +175,7 @@ namespace ManiaRTRender.Render
                     color = OsuUtils.JUDGEMENT_COLORS[(int)note.Judgement];
                     hasHitNotes |= note.Judgement != Judgement.MISS;
                 }
-                DrawNote(note.Column, y, (int)note.Duration, color, false, false);
+                DrawNote(note.Column, y, (int)note.Duration, color, false, false, true);
             });
 
             // 2. draw action
@@ -179,7 +184,7 @@ namespace ManiaRTRender.Render
             {
                 long dt = time - action.TimeStamp;
                 int y = TimeToHeight(dt);
-                DrawNote(action.Column, y, 0, OsuUtils.JUDGEMENT_COLORS[(int)action.JudgementStart], true, true);
+                DrawNote(action.Column, y, 0, OsuUtils.JUDGEMENT_COLORS[(int)action.JudgementStart], true, true, true);
 
                 if (action.Duration != 0 || action.IsHolding)
                 {
@@ -187,7 +192,7 @@ namespace ManiaRTRender.Render
                     if (!action.IsHolding)
                     {
                         y = TimeToHeight(time - action.EndTime);
-                        DrawNote(action.Column, y, 0, OsuUtils.JUDGEMENT_COLORS[(int)action.JudgementEnd], true, true);
+                        DrawNote(action.Column, y, 0, OsuUtils.JUDGEMENT_COLORS[(int)action.JudgementEnd], true, true, true);
                     }
                     DrawActionLN(action, time, OsuUtils.COLOR_LIGHT);
                 }
@@ -208,7 +213,7 @@ namespace ManiaRTRender.Render
                         int color = (int)(255.0 * Math.Pow(HOLD_LOOSE_ALPHA, time - rawEvents[j].TimeStamp));
                         if (j == index) color = 255;
                         color = Math.Min(Math.Max(0, color), 255);
-                        DrawNote(i, Setting.NoteHeight, 0, Color.FromArgb(color, color, color), false, true);
+                        DrawNote(i, Setting.NoteHeight, 0, Color.FromArgb(color, color, color), false, true, false);
                         break;
                     }
                 }
@@ -219,6 +224,7 @@ namespace ManiaRTRender.Render
             }
 
             _forceSync = hasHitNotes && !hasActions;
+            return time;
         }
 
         private void FindRenderingNotes<T>(LinkedList<T> notes, long time, OnFind<T> onFind) where T: BaseNote
@@ -262,7 +268,7 @@ namespace ManiaRTRender.Render
             return (int)((double)t / _timeWindow * IpcConstants.GAME_HEIGHT);
         }
 
-        private void DrawNote(int index, int y, int duration, Color color, bool isAction, bool shouldFill)
+        private void DrawNote(int index, int y, int duration, Color color, bool isAction, bool shouldFill, bool fallable = false)
         {
             int x = (int)(index * _columnWidth);
             int h = Math.Max(Setting.NoteHeight, TimeToHeight(duration));
@@ -287,7 +293,8 @@ namespace ManiaRTRender.Render
                 X2 = x + width,
                 Y2 = y,
                 Color = color,
-                ShouldFilled = shouldFill
+                ShouldFilled = shouldFill,
+                Fallable = fallable
             });
         }
 
@@ -307,7 +314,8 @@ namespace ManiaRTRender.Render
                 Y2 = y - h,
                 Width = width,
                 Color = color,
-                Stipple = true
+                Stipple = true,
+                Fallable = true
             });
         }
 

@@ -65,6 +65,7 @@ namespace IpcLibrary
         public int Width;
         public Color Color;
         public bool Stipple;
+        public bool Fallable;
 
         public override int Read(ref byte[] buff, int start)
         {
@@ -75,6 +76,7 @@ namespace IpcLibrary
             start = SerializeUtils.ReadInt(out Width, ref buff, start);
             start = SerializeUtils.ReadColor(out Color, ref buff, start);
             start = SerializeUtils.ReadBool(out Stipple, ref buff, start);
+            start = SerializeUtils.ReadBool(out Fallable, ref buff, start);
             return start;
         }
 
@@ -87,6 +89,7 @@ namespace IpcLibrary
             start = SerializeUtils.WriteInt(Width, ref buff, start);
             start = SerializeUtils.WriteColor(ref Color, ref buff, start);
             start = SerializeUtils.WriteBool(Stipple, ref buff, start);
+            start = SerializeUtils.WriteBool(Fallable, ref buff, start);
             return start;
         }
     };
@@ -96,6 +99,7 @@ namespace IpcLibrary
         public int X1, Y1, X2, Y2;
         public Color Color;
         public bool ShouldFilled;
+        public bool Fallable;
 
         public override int Read(ref byte[] buff, int start)
         {
@@ -105,6 +109,7 @@ namespace IpcLibrary
             start = SerializeUtils.ReadInt(out Y2, ref buff, start);
             start = SerializeUtils.ReadColor(out Color, ref buff, start);
             start = SerializeUtils.ReadBool(out ShouldFilled, ref buff, start);
+            start = SerializeUtils.ReadBool(out Fallable, ref buff, start);
             return start;
         }
 
@@ -116,6 +121,7 @@ namespace IpcLibrary
             start = SerializeUtils.WriteInt(Y2, ref buff, start);
             start = SerializeUtils.WriteColor(ref Color, ref buff, start);
             start = SerializeUtils.WriteBool(ShouldFilled, ref buff, start);
+            start = SerializeUtils.WriteBool(Fallable, ref buff, start);
             return start;
         }
     };
@@ -129,6 +135,8 @@ namespace IpcLibrary
         public List<RectEvent> RectEvents = new List<RectEvent>();
         public bool DrawBackground = true;
         public string PlayerName = "Unknown";
+        public int PlayingTime = 0;
+        public int FallingSpeed = 0;
         public bool RequestUpdate = false;
 
         public override int Read(ref byte[] buff, int start)
@@ -154,6 +162,8 @@ namespace IpcLibrary
 
             start = SerializeUtils.ReadBool(out DrawBackground, ref buff, start);
             start = SerializeUtils.ReadString(out PlayerName, ref buff, start);
+            start = SerializeUtils.ReadInt(out PlayingTime, ref buff, start);
+            start = SerializeUtils.ReadInt(out FallingSpeed, ref buff, start);
             start = SerializeUtils.ReadBool(out RequestUpdate, ref buff, start);
 
             return start;
@@ -181,6 +191,8 @@ namespace IpcLibrary
 
                 start = SerializeUtils.WriteBool(DrawBackground, ref buff, start);
                 start = SerializeUtils.WriteString(ref PlayerName, ref buff, start);
+                start = SerializeUtils.WriteInt(PlayingTime, ref buff, start);
+                start = SerializeUtils.WriteInt(FallingSpeed, ref buff, start);
                 start = SerializeUtils.WriteBool(RequestUpdate, ref buff, start);
             }
             catch (Exception e)

@@ -87,13 +87,6 @@ namespace ManiaRTRender
             set => Setting.BackgroundPictureInPlaying = value;
             get => Setting.BackgroundPictureInPlaying;
         }
-        
-        [Integer(RequireRestart = true)]
-        public ConfigurationElement ServerSleepPerCycle
-        {
-            set => Setting.ServerSleepPerCycle = int.Parse(value);
-            get => Setting.ServerSleepPerCycle.ToString();
-        }
 
         [Float(MinValue = 0.0f, MaxValue = 1.0f)]
         public ConfigurationElement RateSmoothFactor
